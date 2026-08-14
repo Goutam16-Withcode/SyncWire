@@ -20,21 +20,44 @@ export const io = new Server(server, {
 export const userSocketMap = {}; // { userId: socketId }
 
 // Socket.io connection handler
-io.on("connection", (socket)=>{
+io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId;
-    console.log("User Connected", userId);
+    console.log("User Connected:", userId);
 
-    if(userId) userSocketMap[userId] = socket.id;
-    
+    if (userId) userSocketMap[userId] = socket.id;
+
     // Emit online users to all connected clients
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-    socket.on("disconnect", ()=>{
-        console.log("User Disconnected", userId);
+    // Real-time typing indicators
+    socket.on("typing", ({ receiverId }) => {
+        const receiverSocketId = userSocketMap[receiverId];
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("userTyping", { senderId: userId });
+        }
+    });
+
+    socket.on("stopTyping", ({ receiverId }) => {
+        const receiverSocketId = userSocketMap[receiverId];
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("userStopTyping", { senderId: userId });
+        }
+    });
+
+    // Real-time mark seen
+    socket.on("markSeen", ({ senderId }) => {
+        const senderSocketId = userSocketMap[senderId];
+        if (senderSocketId) {
+            io.to(senderSocketId).emit("messagesSeen", { byUserId: userId });
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User Disconnected:", userId);
         delete userSocketMap[userId];
-        io.emit("getOnlineUsers", Object.keys(userSocketMap))
-    })
-})
+        io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    });
+});
 
 // Middleware setup
 app.use(express.json({limit: "4mb"}));

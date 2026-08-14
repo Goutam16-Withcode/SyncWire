@@ -1,92 +1,175 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { AuthContext } from "./AuthContext";
 import toast from "react-hot-toast";
-
+import { sounds } from "../lib/sounds";
 
 export const ChatContext = createContext();
 
-export const ChatProvider = ({ children })=>{
-
+export const ChatProvider = ({ children }) => {
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null)
-    const [unseenMessages, setUnseenMessages] = useState({})
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [unseenMessages, setUnseenMessages] = useState({});
+    const [lastMessages, setLastMessages] = useState({});
+    const [typingUsers, setTypingUsers] = useState({}); // { [userId]: boolean }
+    const [showContactInfo, setShowContactInfo] = useState(false);
 
-    const {socket, axios} = useContext(AuthContext);
+    const { socket, axios, authUser } = useContext(AuthContext);
+    const typingTimeoutRef = useRef(null);
 
-    // function to get all users for sidebar
-    const getUsers = async () =>{
+    // Get all users for sidebar
+    const getUsers = async () => {
         try {
             const { data } = await axios.get("/api/messages/users");
             if (data.success) {
-                setUsers(data.users)
-                setUnseenMessages(data.unseenMessages)
+                setUsers(data.users);
+                setUnseenMessages(data.unseenMessages || {});
+                setLastMessages(data.lastMessages || {});
             }
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message);
         }
-    }
+    };
 
-    // function to get messages for selected user
-    const getMessages = async (userId)=>{
+    // Get messages for selected user
+    const getMessages = async (userId) => {
         try {
             const { data } = await axios.get(`/api/messages/${userId}`);
-            if (data.success){
-                setMessages(data.messages)
+            if (data.success) {
+                setMessages(data.messages);
+                // Clear unseen for this user
+                setUnseenMessages((prev) => ({ ...prev, [userId]: 0 }));
             }
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.message);
         }
-    }
+    };
 
-    // function to send message to selected user
-    const sendMessage = async (messageData)=>{
+    // Send message (text, image, audio)
+    const sendMessage = async (messageData) => {
+        if (!selectedUser) return;
         try {
-            const {data} = await axios.post(`/api/messages/send/${selectedUser._id}`, messageData);
-            if(data.success){
-                setMessages((prevMessages)=>[...prevMessages, data.newMessage])
-            }else{
+            // Stop typing immediately when sending
+            sendStopTyping();
+            
+            const { data } = await axios.post(`/api/messages/send/${selectedUser._id}`, messageData);
+            if (data.success) {
+                setMessages((prevMessages) => [...prevMessages, data.newMessage]);
+                // Update last message in sidebar
+                setLastMessages((prev) => ({ ...prev, [selectedUser._id]: data.newMessage }));
+                // Play WhatsApp sent chime
+                sounds.playSent();
+                return data.newMessage;
+            } else {
                 toast.error(data.message);
             }
         } catch (error) {
             toast.error(error.message);
         }
-    }
+    };
 
-    // function to subscribe to messages for selected user
-    const subscribeToMessages = async () =>{
-        if(!socket) return;
+    // Typing indicator helpers
+    const sendTyping = () => {
+        if (!socket || !selectedUser) return;
+        socket.emit("typing", { receiverId: selectedUser._id });
 
-        socket.on("newMessage", (newMessage)=>{
-            if(selectedUser && newMessage.senderId === selectedUser._id){
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            sendStopTyping();
+        }, 2500);
+    };
+
+    const sendStopTyping = () => {
+        if (!socket || !selectedUser) return;
+        socket.emit("stopTyping", { receiverId: selectedUser._id });
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+
+    // Socket subscriptions
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNewMessage = (newMessage) => {
+            const isFromCurrentChat = selectedUser && newMessage.senderId === selectedUser._id;
+
+            if (isFromCurrentChat) {
                 newMessage.seen = true;
-                setMessages((prevMessages)=> [...prevMessages, newMessage]);
+                setMessages((prevMessages) => [...prevMessages, newMessage]);
                 axios.put(`/api/messages/mark/${newMessage._id}`);
-            }else{
-                setUnseenMessages((prevUnseenMessages)=>({
-                    ...prevUnseenMessages, [newMessage.senderId] : prevUnseenMessages[newMessage.senderId] ? prevUnseenMessages[newMessage.senderId] + 1 : 1
-                }))
+                // Emit mark seen back so sender gets blue ticks
+                socket.emit("markSeen", { senderId: newMessage.senderId });
+            } else {
+                setUnseenMessages((prev) => ({
+                    ...prev,
+                    [newMessage.senderId]: (prev[newMessage.senderId] || 0) + 1,
+                }));
             }
-        })
-    }
 
-    // function to unsubscribe from messages
-    const unsubscribeFromMessages = ()=>{
-        if(socket) socket.off("newMessage");
-    }
+            // Update last message for sidebar
+            setLastMessages((prev) => ({
+                ...prev,
+                [newMessage.senderId]: newMessage,
+            }));
 
-    useEffect(()=>{
-        subscribeToMessages();
-        return ()=> unsubscribeFromMessages();
-    },[socket, selectedUser])
+            // Play incoming sound
+            sounds.playReceived();
+        };
+
+        const handleUserTyping = ({ senderId }) => {
+            setTypingUsers((prev) => ({ ...prev, [senderId]: true }));
+        };
+
+        const handleUserStopTyping = ({ senderId }) => {
+            setTypingUsers((prev) => ({ ...prev, [senderId]: false }));
+        };
+
+        const handleMessagesSeen = ({ byUserId }) => {
+            // If the user who saw the messages is the active chat partner, turn sent ticks blue
+            if (selectedUser && selectedUser._id === byUserId) {
+                setMessages((prev) =>
+                    prev.map((msg) => (msg.senderId === authUser?._id ? { ...msg, seen: true } : msg))
+                );
+            }
+            // Update last message status if applicable
+            setLastMessages((prev) => {
+                const current = prev[byUserId];
+                if (current && current.senderId === authUser?._id) {
+                    return { ...prev, [byUserId]: { ...current, seen: true } };
+                }
+                return prev;
+            });
+        };
+
+        socket.on("newMessage", handleNewMessage);
+        socket.on("userTyping", handleUserTyping);
+        socket.on("userStopTyping", handleUserStopTyping);
+        socket.on("messagesSeen", handleMessagesSeen);
+
+        return () => {
+            socket.off("newMessage", handleNewMessage);
+            socket.off("userTyping", handleUserTyping);
+            socket.off("userStopTyping", handleUserStopTyping);
+            socket.off("messagesSeen", handleMessagesSeen);
+        };
+    }, [socket, selectedUser, authUser]);
 
     const value = {
-        messages, users, selectedUser, getUsers, getMessages, sendMessage, setSelectedUser, unseenMessages, setUnseenMessages
-    }
+        messages,
+        users,
+        selectedUser,
+        setSelectedUser,
+        unseenMessages,
+        setUnseenMessages,
+        lastMessages,
+        typingUsers,
+        showContactInfo,
+        setShowContactInfo,
+        getUsers,
+        getMessages,
+        sendMessage,
+        sendTyping,
+        sendStopTyping,
+    };
 
-    return (
-    <ChatContext.Provider value={value}>
-            { children }
-    </ChatContext.Provider>
-    )
-}
+    return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+};
