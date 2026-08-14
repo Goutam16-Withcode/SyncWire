@@ -68,7 +68,6 @@ const AudioPlayer = ({ src, isSent }) => {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    // Simulated waveform bars
     const barHeights = [40, 70, 30, 90, 60, 40, 80, 100, 50, 70, 90, 40, 60, 80, 30, 90, 50, 70, 40, 60];
 
     return (
@@ -79,9 +78,9 @@ const AudioPlayer = ({ src, isSent }) => {
             <button
                 type="button"
                 onClick={togglePlay}
-                className="w-10 h-10 rounded-full bg-[#00a884] text-[#111b21] flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition shadow"
+                className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-400 to-violet-600 text-white flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition shadow cursor-pointer"
             >
-                {isPlaying ? <Pause size={18} fill="#111b21" /> : <Play size={18} fill="#111b21" className="ml-0.5" />}
+                {isPlaying ? <Pause size={16} fill="white" /> : <Play size={16} fill="white" className="ml-0.5" />}
             </button>
 
             {/* Waveform and progress */}
@@ -99,8 +98,8 @@ const AudioPlayer = ({ src, isSent }) => {
                                 style={{ height: `${h}%` }}
                                 className={`w-[3px] rounded-full transition-all duration-150 ${
                                     isPlayed 
-                                        ? isSent ? 'bg-[#00a884]' : 'bg-[#00a884]' 
-                                        : isSent ? 'bg-[#005c4b]/50 border border-white/20' : 'bg-[#8696a0]/40'
+                                        ? 'bg-violet-400' 
+                                        : 'bg-gray-500/40'
                                 }`}
                             />
                         );
@@ -108,9 +107,9 @@ const AudioPlayer = ({ src, isSent }) => {
                 </div>
 
                 {/* Duration & Mic indicator */}
-                <div className="flex justify-between items-center text-[10px] text-[#8696a0]">
+                <div className="flex justify-between items-center text-[10px] text-gray-400">
                     <span>{isPlaying ? formatTime(currentTime) : (duration ? formatTime(duration) : "0:00")}</span>
-                    <Mic size={12} className={isSent ? "text-[#00a884]" : "text-[#8696a0]"} />
+                    <Mic size={12} className={isSent ? "text-violet-400" : "text-gray-400"} />
                 </div>
             </div>
         </div>
@@ -118,3 +117,4 @@ const AudioPlayer = ({ src, isSent }) => {
 };
 
 export default AudioPlayer;
+

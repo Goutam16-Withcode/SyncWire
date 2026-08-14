@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # QuickChat Backend Node/Express & Socket.io Service
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: quickchat-server
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb+srv://goutamsharrma_db_user:6dTJ5JUngla7oZ7b@cluster0.hodnt5a.mongodb.net/?appName=Cluster0
+      - JWT_SECRET=quickchat_super_secure_jwt_secret_key_2026
+    networks:
+      - quickchat-network
+
+  # QuickChat Frontend React / Vite Service
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: quickchat-client
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://localhost:5000
+    depends_on:
+      - server
+    networks:
+      - quickchat-network
+
+networks:
+  quickchat-network:
+    driver: bridge

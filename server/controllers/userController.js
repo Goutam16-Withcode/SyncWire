@@ -53,6 +53,37 @@ export const login = async (req, res) =>{
         res.json({success: false, message: error.message})
     }
 }
+
+// Controller for Google Auth (Login or Automatic Signup)
+export const googleAuth = async (req, res) => {
+    try {
+        const { email, fullName, profilePic, googleId } = req.body;
+        if (!email) {
+            return res.json({ success: false, message: "Email is required for Google Sign-in" });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Auto register new Google user
+            const dummyPassword = await bcrypt.hash(googleId || Math.random().toString(36), 10);
+            user = await User.create({
+                email,
+                fullName: fullName || email.split("@")[0],
+                profilePic: profilePic || "",
+                bio: "Hi Everyone, I am Using SyncWire",
+                password: dummyPassword,
+            });
+        }
+
+        const token = generateToken(user._id);
+        res.json({ success: true, userData: user, token, message: "Google Sign-in successful" });
+    } catch (error) {
+        console.log("googleAuth error:", error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
 // Controller to check if user is authenticated
 export const checkAuth = (req, res)=>{
     res.json({success: true, user: req.user});
@@ -73,9 +104,31 @@ export const updateProfile = async (req, res)=>{
 
             updatedUser = await User.findByIdAndUpdate(userId, {profilePic: upload.secure_url, bio, fullName}, {new: true});
         }
-        res.json({success: true, user: updatedUser})
+        res.json({success: true, user: updatedUser});
     } catch (error) {
         console.log(error.message);
-        res.json({success: false, message: error.message})
+        res.json({success: false, message: error.message});
     }
-}
+};
+
+// Set custom contact nickname
+export const setNickname = async (req, res) => {
+    try {
+        const { contactUserId, nickname } = req.body;
+        const userId = req.user._id;
+
+        const user = await User.findById(userId);
+        if (!user.nicknames) user.nicknames = new Map();
+
+        if (nickname && nickname.trim()) {
+            user.nicknames.set(contactUserId, nickname.trim());
+        } else {
+            user.nicknames.delete(contactUserId);
+        }
+
+        await user.save();
+        res.json({ success: true, nicknames: Object.fromEntries(user.nicknames) });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};

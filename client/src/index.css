@@ -1,43 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 
 @import "tailwindcss";
 
-:root {
-  --wa-bg-dark: #111b21;
-  --wa-bg-panel: #202c33;
-  --wa-bg-header: #202c33;
-  --wa-bg-input: #2a3942;
-  --wa-bg-bubble-sent: #005c4b;
-  --wa-bg-bubble-received: #202c33;
-  --wa-accent: #00a884;
-  --wa-accent-hover: #06cf9c;
-  --wa-text-primary: #e9edef;
-  --wa-text-secondary: #8696a0;
-  --wa-text-muted: #667781;
-  --wa-border: #222e35;
-  --wa-border-light: rgba(134, 150, 160, 0.15);
-  --wa-unread: #00a884;
-  --wa-blue-tick: #53bdeb;
-}
-
 * {
-  font-family: 'Segoe UI', "Outfit", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Outfit", sans-serif;
   box-sizing: border-box;
 }
 
-body {
-  background-color: #0c1317;
-  color: var(--wa-text-primary);
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  user-select: none;
+html[data-font-size="small"] {
+  font-size: 13.5px;
 }
 
-/* Custom WhatsApp Scrollbar */
+html[data-font-size="medium"] {
+  font-size: 15px;
+}
+
+html[data-font-size="large"] {
+  font-size: 17px;
+}
+
+html[data-font-size="xlarge"] {
+  font-size: 19px;
+}
+
+/* Custom Glassmorphic Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -45,60 +34,117 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(134, 150, 160, 0.25);
-  border-radius: 3px;
+  background: rgba(129, 133, 178, 0.25);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(134, 150, 160, 0.4);
-}
-
-/* WhatsApp Chat Doodle Background */
-.whatsapp-chat-bg {
-  background-color: #0b141a;
-  background-image: radial-gradient(#182229 1px, transparent 1px), radial-gradient(#182229 1px, #0b141a 1px);
-  background-size: 40px 40px;
-  background-position: 0 0, 20px 20px;
-  position: relative;
-}
-
-.whatsapp-chat-bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' opacity='0.04'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-rule='evenodd'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-/* Chat bubble tails */
-.bubble-tail-sent::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: -8px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid #005c4b;
-  border-bottom: 8px solid transparent;
-}
-
-.bubble-tail-received::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -8px;
-  width: 0;
-  height: 0;
-  border-right: 8px solid #202c33;
-  border-bottom: 8px solid transparent;
+  background: rgba(129, 133, 178, 0.45);
 }
 
 /* Pulsing audio wave animation */
 @keyframes wavePulse {
-  0%, 100% { height: 4px; }
-  50% { height: 18px; }
+  0%, 100% { height: 6px; }
+  50% { height: 24px; }
 }
 
 .wave-bar {
   animation: wavePulse 1s ease-in-out infinite;
-}
+}
+
+/* ================= CHAT WALLPAPER PATTERNS ================= */
+.wallpaper-default {
+  background-image: url('/bgImage.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+.wallpaper-doodle_dark {
+  background-color: #0b141a;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px), radial-gradient(rgba(255, 255, 255, 0.04) 1px, #0b141a 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+.wallpaper-doodle_light {
+  background-color: #efeae2;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px), radial-gradient(rgba(0, 0, 0, 0.05) 1px, #efeae2 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+.wallpaper-cosmic_stars {
+  background-color: #05021a;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 40px 70px, #a78bfa, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #38bdf8, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 130px 80px, #f472b6, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+    linear-gradient(135deg, #090224 0%, #15083a 50%, #030014 100%);
+  background-size: 200px 200px, 200px 200px, 200px 200px, 200px 200px, 200px 200px, 100% 100%;
+}
+
+.wallpaper-cyber_grid {
+  background-color: #08031a;
+  background-image: 
+    linear-gradient(rgba(168, 85, 247, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.15) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(147, 51, 234, 0.25) 0%, transparent 70%);
+  background-size: 32px 32px, 32px 32px, 100% 100%;
+}
+
+.wallpaper-sakura_floral {
+  background-color: #1a0614;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(244, 114, 182, 0.15) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(251, 113, 133, 0.15) 0%, transparent 25%),
+    radial-gradient(circle at 50% 50%, rgba(192, 38, 211, 0.1) 0%, transparent 40%),
+    linear-gradient(180deg, #22091c 0%, #150310 100%);
+}
+
+.wallpaper-geometric_honeycomb {
+  background-color: #031c14;
+  background-image: 
+    linear-gradient(30deg, #052e22 12%, transparent 12.5%, transparent 87%, #052e22 87.5%, #052e22),
+    linear-gradient(150deg, #052e22 12%, transparent 12.5%, transparent 87%, #052e22 87.5%, #052e22),
+    linear-gradient(30deg, #052e22 12%, transparent 12.5%, transparent 87%, #052e22 87.5%, #052e22),
+    linear-gradient(150deg, #052e22 12%, transparent 12.5%, transparent 87%, #052e22 87.5%, #052e22),
+    linear-gradient(60deg, rgba(16, 185, 129, 0.08) 25%, transparent 25.5%, transparent 75%, rgba(16, 185, 129, 0.08) 75%, rgba(16, 185, 129, 0.08)),
+    linear-gradient(60deg, rgba(16, 185, 129, 0.08) 25%, transparent 25.5%, transparent 75%, rgba(16, 185, 129, 0.08) 75%, rgba(16, 185, 129, 0.08));
+  background-size: 40px 70px;
+  background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
+}
+
+.wallpaper-midnight_matrix {
+  background-color: #000000;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, #09090b, #000000);
+  background-size: 16px 16px, 100% 100%;
+}
+
+.wallpaper-sunset_dunes {
+  background: linear-gradient(135deg, #2d0b3f 0%, #4a154b 30%, #7c2d12 70%, #1c0a27 100%);
+}
+
+.wallpaper-mesh_aura {
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.25) 0%, transparent 50%),
+    linear-gradient(180deg, #110d24 0%, #080514 100%);
+}
+
+.wallpaper-matte_slate {
+  background-color: #0f172a;
+  background-image: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+}
+
+.wallpaper-nature_forest {
+  background: 
+    radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.2) 0%, transparent 60%),
+    linear-gradient(180deg, #021a12 0%, #062c20 50%, #01120c 100%);
+}
+
+
