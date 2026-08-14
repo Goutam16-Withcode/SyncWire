@@ -152,8 +152,13 @@ app.use("/api/stories", storyRouter);
 app.use("/api/ai", aiRouter);
 
 
+import { startScheduledMessageWorker } from "./lib/scheduledJob.js";
+
 // Connect to MongoDB
 await connectDB();
+
+// Start background scheduled message dispatcher
+startScheduledMessageWorker();
 
 if (process.env.NODE_ENV !== "production") {
     const PORT = process.env.PORT || 5000;

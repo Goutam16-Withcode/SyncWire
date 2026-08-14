@@ -17,6 +17,12 @@ const storySchema = new mongoose.Schema({
             createdAt: { type: Date, default: Date.now }
         }
     ],
+    musicTrack: {
+        id: { type: String, default: "" },
+        title: { type: String, default: "" },
+        artist: { type: String, default: "" },
+        audioUrl: { type: String, default: "" }
+    },
     createdAt: { type: Date, default: Date.now, expires: 86400 } // Auto-delete after 24h (86400s)
 });
 

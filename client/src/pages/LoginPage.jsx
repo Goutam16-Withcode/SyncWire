@@ -120,10 +120,8 @@ const LoginPage = () => {
                     <div className="space-y-4 relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                    S
-                                </div>
-                                <span className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-100 to-violet-300 bg-clip-text text-transparent">
+                                <img src={assets.logo_icon} alt="SyncWire Logo" className="w-10 h-10 md:w-11 md:h-11 object-contain drop-shadow-md" />
+                                <span className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
                                     SyncWire
                                 </span>
                             </div>

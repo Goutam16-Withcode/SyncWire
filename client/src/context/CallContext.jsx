@@ -19,9 +19,12 @@ export const CallProvider = ({ children }) => {
     const [callData, setCallData] = useState(null); // { user, isVideo, from, signal, callerName, callerPic }
     const [isMuted, setIsMuted] = useState(false);
     const [isCameraOff, setIsCameraOff] = useState(false);
+    const [isScreenSharing, setIsScreenSharing] = useState(false);
+    const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
     const [callDuration, setCallDuration] = useState(0);
 
     const localStreamRef = useRef(null);
+    const screenStreamRef = useRef(null);
     const remoteStreamRef = useRef(null);
     const peerConnectionRef = useRef(null);
     const callTimerRef = useRef(null);
@@ -172,6 +175,59 @@ export const CallProvider = ({ children }) => {
         }
     };
 
+    // Screen Sharing via WebRTC
+    const toggleScreenShare = async () => {
+        try {
+            if (isScreenSharing) {
+                // Stop screen share & revert to webcam
+                if (screenStreamRef.current) {
+                    screenStreamRef.current.getTracks().forEach((t) => t.stop());
+                    screenStreamRef.current = null;
+                }
+                const stream = await getMedia(true);
+                if (stream && peerConnectionRef.current) {
+                    const videoTrack = stream.getVideoTracks()[0];
+                    const senders = peerConnectionRef.current.getSenders();
+                    const sender = senders.find((s) => s.track && s.track.kind === 'video');
+                    if (sender && videoTrack) {
+                        sender.replaceTrack(videoTrack);
+                    }
+                }
+                setIsScreenSharing(false);
+                toast.success("Stopped screen sharing");
+            } else {
+                // Start screen share
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                screenStreamRef.current = screenStream;
+                const screenTrack = screenStream.getVideoTracks()[0];
+
+                if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = screenStream;
+                }
+
+                if (peerConnectionRef.current) {
+                    const senders = peerConnectionRef.current.getSenders();
+                    const sender = senders.find((s) => s.track && s.track.kind === 'video');
+                    if (sender && screenTrack) {
+                        sender.replaceTrack(screenTrack);
+                    }
+                }
+
+                screenTrack.onended = () => {
+                    toggleScreenShare();
+                };
+
+                setIsScreenSharing(true);
+                toast.success("Sharing your screen");
+            }
+        } catch (err) {
+            if (err.name !== 'NotAllowedError') {
+                toast.error("Screen sharing was cancelled or not supported");
+            }
+            setIsScreenSharing(false);
+        }
+    };
+
     const startTimer = () => {
         setCallDuration(0);
         if (callTimerRef.current) clearInterval(callTimerRef.current);
@@ -186,6 +242,10 @@ export const CallProvider = ({ children }) => {
             localStreamRef.current.getTracks().forEach((t) => t.stop());
             localStreamRef.current = null;
         }
+        if (screenStreamRef.current) {
+            screenStreamRef.current.getTracks().forEach((t) => t.stop());
+            screenStreamRef.current = null;
+        }
         if (peerConnectionRef.current) {
             peerConnectionRef.current.close();
             peerConnectionRef.current = null;
@@ -196,6 +256,8 @@ export const CallProvider = ({ children }) => {
         setCallDuration(0);
         setIsMuted(false);
         setIsCameraOff(false);
+        setIsScreenSharing(false);
+        setIsWhiteboardOpen(false);
     };
 
     // Socket event listeners for calling
@@ -204,7 +266,6 @@ export const CallProvider = ({ children }) => {
 
         const handleIncomingCall = (data) => {
             if (callState !== 'idle') {
-                // Busy
                 socket.emit("rejectCall", { to: data.from });
                 return;
             }
@@ -260,6 +321,9 @@ export const CallProvider = ({ children }) => {
         callData,
         isMuted,
         isCameraOff,
+        isScreenSharing,
+        isWhiteboardOpen,
+        setIsWhiteboardOpen,
         callDuration,
         localVideoRef,
         remoteVideoRef,
@@ -269,6 +333,7 @@ export const CallProvider = ({ children }) => {
         endCall,
         toggleMute,
         toggleCamera,
+        toggleScreenShare,
     };
 
     return <CallContext.Provider value={value}>{children}</CallContext.Provider>;

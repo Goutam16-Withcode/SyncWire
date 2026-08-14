@@ -195,9 +195,12 @@ const PhoneLoginPage = () => {
         <div className="min-h-screen bg-[url('/bgImage.svg')] bg-cover bg-no-repeat flex items-center justify-center p-4 select-none">
             <div className="bg-[#282142]/85 backdrop-blur-xl border border-gray-600/60 rounded-3xl shadow-2xl p-8 max-w-md w-full text-white flex flex-col items-center">
                 
-                {/* Brand Logo & WhatsApp Shield */}
+                {/* Brand Logo & Security Shield */}
                 <div className="flex flex-col items-center gap-2 mb-6">
-                    <img src={assets.logo} alt="QuickChat" className="w-40" />
+                    <div className="flex items-center gap-2.5">
+                        <img src={assets.logo_icon} alt="SyncWire" className="w-10 h-10 object-contain drop-shadow-md" />
+                        <span className="text-2xl font-extrabold tracking-tight text-white">SyncWire</span>
+                    </div>
                     <div className="flex items-center gap-1.5 text-xs text-green-400 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
                         <ShieldCheck size={14} /> End-to-End Encrypted Verification
                     </div>

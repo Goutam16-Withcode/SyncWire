@@ -9,6 +9,7 @@ import ThemeModal from './ThemeModal';
 import CreateStatusModal from './CreateStatusModal';
 import StatusViewerModal from './StatusViewerModal';
 import AIAssistantModal from './AIAssistantModal';
+import SecretVaultModal from './SecretVaultModal';
 import { 
     Check, 
     CheckCheck, 
@@ -22,7 +23,9 @@ import {
     Palette,
     Bot,
     Sparkles,
-    CircleDashed
+    CircleDashed,
+    Lock,
+    Unlock
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -42,7 +45,13 @@ const Sidebar = () => {
         lastMessages,
         typingUsers,
         nicknames,
-        activeTheme
+        activeTheme,
+        isVaultUnlocked,
+        unlockVault,
+        lockVault,
+        setVaultPin,
+        vaultPin,
+        hiddenChatIds
     } = useContext(ChatContext);
 
 
@@ -57,6 +66,7 @@ const Sidebar = () => {
     const [isCreateStatusOpen, setIsCreateStatusOpen] = useState(false);
     const [viewingStoryGroup, setViewingStoryGroup] = useState(null);
     const [isAIOpen, setIsAIOpen] = useState(false);
+    const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -66,8 +76,9 @@ const Sidebar = () => {
         getStories();
     }, [onlineUsers]);
 
-    // Filter users by search and by unread status
+    // Filter users by search, unread, and vault privacy
     const filteredUsers = users.filter((user) => {
+        if (!isVaultUnlocked && hiddenChatIds.includes(user._id)) return false;
         const displayName = nicknames[user._id] || user.fullName;
         const matchesSearch = displayName.toLowerCase().includes(searchQuery.toLowerCase());
         if (activeFilter === 'unread') {
@@ -76,9 +87,10 @@ const Sidebar = () => {
         return matchesSearch;
     });
 
-    const filteredGroups = groups.filter((grp) =>
-        grp.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredGroups = groups.filter((grp) => {
+        if (!isVaultUnlocked && hiddenChatIds.includes(grp._id)) return false;
+        return grp.name.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     const totalUnread = Object.values(unseenMessages).reduce((acc, curr) => acc + (curr || 0), 0);
 
@@ -88,14 +100,32 @@ const Sidebar = () => {
             {/* Top Bar with Logo, Theme, and Menu */}
             <div className={`p-4 pb-2 border-b transition-colors duration-300 ${activeTheme.sidebarHeaderClass || 'border-gray-700/30'}`}>
                 <div className="flex justify-between items-center">
-                    <img 
-                        src={assets.logo} 
-                        alt="logo" 
-                        className="max-w-36 cursor-pointer" 
+                    <div 
                         onClick={() => { setSelectedUser(null); setSelectedGroup(null); }} 
-                    />
+                        className="flex items-center gap-2 cursor-pointer group"
+                    >
+                        <img 
+                            src={assets.logo_icon} 
+                            alt="SyncWire" 
+                            className="w-7 h-7 object-contain group-hover:scale-105 transition-transform" 
+                        />
+                        <span className="text-lg font-extrabold tracking-tight text-white">
+                            SyncWire
+                        </span>
+                    </div>
                     
                     <div className="flex items-center gap-1.5">
+                        {/* Private Vault Button */}
+                        <button
+                            onClick={() => setIsVaultModalOpen(true)}
+                            className={`p-1.5 rounded-full transition cursor-pointer ${
+                                isVaultUnlocked ? 'bg-amber-500/30 text-amber-300 ring-1 ring-amber-400' : 'bg-white/10 hover:bg-white/20 text-white'
+                            }`}
+                            title={isVaultUnlocked ? "Vault Unlocked (Click to manage)" : "Open Private Vault"}
+                        >
+                            {isVaultUnlocked ? <Unlock size={16} /> : <Lock size={16} />}
+                        </button>
+
                         {/* Theme Customizer Button */}
                         <button
                             onClick={() => setIsThemeModalOpen(true)}
@@ -480,6 +510,16 @@ const Sidebar = () => {
             <StatusViewerModal
                 userStoriesGroup={viewingStoryGroup}
                 onClose={() => setViewingStoryGroup(null)}
+            />
+
+            <SecretVaultModal
+                isOpen={isVaultModalOpen}
+                onClose={() => setIsVaultModalOpen(false)}
+                isUnlocked={isVaultUnlocked}
+                onUnlock={unlockVault}
+                onLock={lockVault}
+                onSetPin={setVaultPin}
+                hasPin={Boolean(vaultPin)}
             />
         </div>
     );

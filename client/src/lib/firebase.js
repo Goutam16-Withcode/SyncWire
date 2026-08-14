@@ -1,15 +1,15 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
-// Firebase configuration
+// Firebase configuration from environment variables
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCKh3_D_7IVB3XazoF_R_1Ukxn6nAs79Vw",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "chat-app-a406c.firebaseapp.com",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "chat-app-a406c",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "chat-app-a406c.firebasestorage.app",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "364996564150",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:364996564150:web:9462c0107781d9054cc217",
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-TGYZLSZH1N"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];

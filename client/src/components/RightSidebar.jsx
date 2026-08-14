@@ -13,7 +13,7 @@ import {
 import toast from 'react-hot-toast';
 
 const RightSidebar = () => {
-    const { selectedUser, messages, showContactInfo, setShowContactInfo, activeTheme } = useContext(ChatContext);
+    const { selectedUser, messages, showContactInfo, setShowContactInfo, activeTheme, hiddenChatIds, toggleHideChat } = useContext(ChatContext);
     const { logout, onlineUsers } = useContext(AuthContext);
     const [msgImages, setMsgImages] = useState([]);
 
@@ -94,14 +94,30 @@ const RightSidebar = () => {
                 )}
             </div>
 
-            {/* Encryption & Info */}
-            <div className="px-5 pt-4 space-y-2 text-xs text-gray-400">
-                <div className="flex items-center gap-2">
+            {/* Vault & Privacy Options */}
+            <div className="px-5 pt-4 space-y-2.5">
+                <button
+                    type="button"
+                    onClick={() => {
+                        toggleHideChat(selectedUser._id);
+                        toast(hiddenChatIds.includes(selectedUser._id) ? "Chat visible in sidebar" : "Chat hidden in Private Vault");
+                    }}
+                    className={`w-full py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer ${
+                        hiddenChatIds.includes(selectedUser._id)
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'
+                    }`}
+                >
+                    <Lock size={14} className={hiddenChatIds.includes(selectedUser._id) ? "text-amber-400" : "text-gray-400"} />
+                    <span>{hiddenChatIds.includes(selectedUser._id) ? "Locked in Vault (Hidden)" : "Hide & Lock in Vault"}</span>
+                </button>
+
+                <div className="flex items-center gap-2 text-xs text-gray-400 pt-1">
                     <Lock size={14} className="text-violet-400 shrink-0" />
                     <span>Messages are end-to-end encrypted</span>
                 </div>
                 {selectedUser.email && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
                         <Mail size={14} className="text-gray-400 shrink-0" />
                         <span>{selectedUser.email}</span>
                     </div>

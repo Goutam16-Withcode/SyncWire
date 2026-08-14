@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { X, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Users } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Users, Music } from 'lucide-react';
 import assets from '../assets/assets';
 import { formatMessageTime } from '../lib/utils';
 import toast from 'react-hot-toast';
@@ -165,11 +165,28 @@ const StatusViewerModal = ({ userStoriesGroup, onClose }) => {
                                 <h3 className="text-sm font-semibold text-white leading-tight">
                                     {user?.fullName}
                                 </h3>
-                                <span className="text-[11px] text-gray-300">
-                                    {formatMessageTime(currentStory?.createdAt)}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[11px] text-gray-300">
+                                        {formatMessageTime(currentStory?.createdAt)}
+                                    </span>
+                                    {currentStory?.musicTrack && (
+                                        <span className="flex items-center gap-1 text-[10px] text-violet-300 bg-violet-500/20 px-2 py-0.5 rounded-full border border-violet-500/30">
+                                            <Music size={10} className="animate-pulse" /> {currentStory.musicTrack.title}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
+
+                        {/* Hidden Audio Player for Soundtrack */}
+                        {currentStory?.musicTrack?.audioUrl && (
+                            <audio 
+                                src={currentStory.musicTrack.audioUrl} 
+                                autoPlay 
+                                loop 
+                                className="hidden"
+                            />
+                        )}
 
                         <button
                             onClick={onClose}

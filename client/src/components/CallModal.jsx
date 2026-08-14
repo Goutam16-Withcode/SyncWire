@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { CallContext } from '../../context/CallContext';
 import assets from '../assets/assets';
+import CallWhiteboard from './CallWhiteboard';
 
 import { 
     Phone, 
@@ -13,7 +14,9 @@ import {
     Minimize2,
     Repeat,
     Grid,
-    User
+    User,
+    Monitor,
+    Edit3
 } from 'lucide-react';
 
 const CallModal = () => {
@@ -22,6 +25,9 @@ const CallModal = () => {
         callData,
         isMuted,
         isCameraOff,
+        isScreenSharing,
+        isWhiteboardOpen,
+        setIsWhiteboardOpen,
         callDuration,
         localVideoRef,
         remoteVideoRef,
@@ -30,6 +36,7 @@ const CallModal = () => {
         endCall,
         toggleMute,
         toggleCamera,
+        toggleScreenShare,
     } = useContext(CallContext);
 
     // View layout mode: 'pip' (normal PIP) | 'swapped' (self on main, remote in PIP) | 'split' (side by side)
@@ -216,6 +223,10 @@ const CallModal = () => {
 
             {/* Main Video / Voice Calling Area */}
             <div className="flex-1 w-full max-w-6xl relative flex items-center justify-center my-3 overflow-hidden rounded-3xl bg-[#110e1f] border border-gray-700/80 shadow-2xl">
+                
+                {/* Live Whiteboard Overlay */}
+                <CallWhiteboard isOpen={isWhiteboardOpen} onClose={() => setIsWhiteboardOpen(false)} />
+
                 {callData?.isVideo ? (
                     <>
                         {/* ================= LAYOUT 1: PIP DEFAULT ================= */}
@@ -240,23 +251,23 @@ const CallModal = () => {
                                         autoPlay 
                                         playsInline 
                                         muted 
-                                        className={`w-full h-full object-cover ${isCameraOff ? 'hidden' : ''}`}
-                                        style={{ transform: 'scaleX(-1)' }}
+                                        className={`w-full h-full object-cover ${isCameraOff && !isScreenSharing ? 'hidden' : ''}`}
+                                        style={!isScreenSharing ? { transform: 'scaleX(-1)' } : {}}
                                     />
-                                    {isCameraOff && (
+                                    {isCameraOff && !isScreenSharing && (
                                         <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900 text-xs text-gray-400 gap-1">
                                             <VideoOff size={18} />
                                             <span>Camera Off</span>
                                         </div>
                                     )}
                                     <div className="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded-md text-[10px] text-white opacity-80 group-hover:opacity-100">
-                                        You (Click to swap)
+                                        {isScreenSharing ? 'Sharing Screen' : 'You (Click to swap)'}
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* ================= LAYOUT 2: SWAPPED (Your Face on Main Screen) ================= */}
+                        {/* ================= LAYOUT 2: SWAPPED (Your Face / Screen on Main Screen) ================= */}
                         {viewMode === 'swapped' && (
                             <div className="w-full h-full relative flex items-center justify-center bg-black">
                                 {/* Local Stream on Main Screen */}
@@ -265,10 +276,10 @@ const CallModal = () => {
                                     autoPlay 
                                     playsInline 
                                     muted 
-                                    className={`w-full h-full object-cover ${isCameraOff ? 'hidden' : ''}`}
-                                    style={{ transform: 'scaleX(-1)' }}
+                                    className={`w-full h-full object-cover ${isCameraOff && !isScreenSharing ? 'hidden' : ''}`}
+                                    style={!isScreenSharing ? { transform: 'scaleX(-1)' } : {}}
                                 />
-                                {isCameraOff && (
+                                {isCameraOff && !isScreenSharing && (
                                     <div className="flex flex-col items-center justify-center text-gray-400 gap-2">
                                         <VideoOff size={32} />
                                         <span>Your Camera is Off</span>
@@ -304,11 +315,11 @@ const CallModal = () => {
                                         autoPlay 
                                         playsInline 
                                         muted 
-                                        className={`w-full h-full object-cover ${isCameraOff ? 'hidden' : ''}`}
-                                        style={{ transform: 'scaleX(-1)' }}
+                                        className={`w-full h-full object-cover ${isCameraOff && !isScreenSharing ? 'hidden' : ''}`}
+                                        style={!isScreenSharing ? { transform: 'scaleX(-1)' } : {}}
                                     />
                                     <div className="absolute top-3 left-3 bg-black/60 px-2.5 py-1 rounded-lg text-xs text-white">
-                                        You
+                                        {isScreenSharing ? 'Your Screen' : 'You'}
                                     </div>
                                 </div>
 
@@ -350,7 +361,7 @@ const CallModal = () => {
             </div>
 
             {/* Bottom Controls Bar */}
-            <div className="bg-[#282142]/90 backdrop-blur-xl border border-gray-600/80 px-8 py-3 rounded-full flex items-center gap-6 shadow-2xl z-30">
+            <div className="bg-[#282142]/90 backdrop-blur-xl border border-gray-600/80 px-6 md:px-8 py-3 rounded-full flex items-center gap-4 md:gap-6 shadow-2xl z-30">
                 {/* Mute Mic */}
                 <button
                     type="button"
@@ -372,6 +383,28 @@ const CallModal = () => {
                         {isCameraOff ? <VideoOff size={20} /> : <Video size={20} />}
                     </button>
                 )}
+
+                {/* Screen Share Button */}
+                {callData?.isVideo && (
+                    <button
+                        type="button"
+                        onClick={toggleScreenShare}
+                        className={`p-3.5 rounded-full transition cursor-pointer ${isScreenSharing ? 'bg-cyan-500 text-white shadow-lg' : 'bg-white/10 text-gray-200 hover:bg-white/20'}`}
+                        title={isScreenSharing ? "Stop Screen Sharing" : "Share Screen"}
+                    >
+                        <Monitor size={20} />
+                    </button>
+                )}
+
+                {/* Whiteboard Button */}
+                <button
+                    type="button"
+                    onClick={() => setIsWhiteboardOpen(!isWhiteboardOpen)}
+                    className={`p-3.5 rounded-full transition cursor-pointer ${isWhiteboardOpen ? 'bg-violet-600 text-white shadow-lg' : 'bg-white/10 text-gray-200 hover:bg-white/20'}`}
+                    title={isWhiteboardOpen ? "Close Whiteboard" : "Open Whiteboard"}
+                >
+                    <Edit3 size={20} />
+                </button>
 
                 {/* End Call */}
                 <button

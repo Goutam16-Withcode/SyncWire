@@ -25,21 +25,51 @@ html[data-font-size="xlarge"] {
 
 /* Custom Glassmorphic Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(129, 133, 178, 0.25);
-  border-radius: 4px;
+  background: rgba(147, 110, 255, 0.45);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(129, 133, 178, 0.45);
+  background: rgba(147, 110, 255, 0.75);
+}
+
+/* Dedicated Chat Stream Scrollbar */
+.chat-scroll-area {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(147, 110, 255, 0.5) rgba(0, 0, 0, 0.2);
+  scroll-behavior: smooth;
+}
+
+.chat-scroll-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-scroll-area::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #936eff 0%, #6366f1 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.chat-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a78bfa 0%, #818cf8 100%);
 }
 
 /* Pulsing audio wave animation */

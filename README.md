@@ -1,186 +1,226 @@
-# ⚡ SyncWire - Modern Real-Time Chat & Video Calling Platform
-
 <div align="center">
 
-![SyncWire Banner](https://img.shields.io/badge/SyncWire-v2.4_Pro-8b5cf6?style=for-the-badge&logo=slack&logoColor=white)
-![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![NodeJS](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![WebRTC](https://img.shields.io/badge/WebRTC-333333?style=for-the-badge&logo=webrtc&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase_Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+# ⚡ SyncWire
+### *Next-Generation Real-Time Messaging, HD Video Calling & AI Collaboration Platform*
+
+[![React 19](https://img.shields.io/badge/React-19.0-61dafb?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-Real--Time-010101?style=for-the-badge&logo=socket.io&logoColor=white)](https://socket.io/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![WebRTC](https://img.shields.io/badge/WebRTC-Peer--to--Peer-333333?style=for-the-badge&logo=webrtc&logoColor=white)](https://webrtc.org/)
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-CDN-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+
+---
 
 <p align="center">
-  A feature-rich, high-performance, full-stack communication platform built with modern web technologies. Experience lightning-fast messaging, crystal-clear peer-to-peer audio/video calling, 24-hour interactive stories, AI-powered smart replies, glassmorphic themes, and dynamic font customization.
+  <b>SyncWire</b> is a feature-packed, privacy-first communication platform that goes beyond standard messengers like WhatsApp and Telegram. Featuring peer-to-peer HD video calling, live screen sharing, collaborative whiteboarding, neural live translations, self-destructing burner notes, scheduled messages, interactive polls, AI in-chat copilot, and 24-hour stories with custom music soundtracks.
 </p>
 
 </div>
 
 ---
 
-## 🌟 Key Features
+## 🌟 Flagship Features
 
-### 💬 1. Real-Time Messaging & Group Chats
-- **Instant Messaging**: Sub-millisecond message delivery powered by Socket.io.
-- **Group Conversations**: Create multi-user channels with custom icons, member management, and group search.
-- **Rich Media & Attachments**: Send high-resolution images, voice notes, and audio messages.
-- **Interactive Reactions & Replies**: Quick emoji reactions on any message with message reply threading.
-- **Typing Indicators & Live Presence**: Real-time online/offline green dots and active typing bubbles.
-- **Live Search**: Instant in-chat search across text history.
-
-### 📹 2. HD Voice & Video Calling (WebRTC)
-- **Peer-to-Peer Encrypted Calls**: Low-latency voice and video calls directly between users.
-- **Mirror Selfie Camera**: Naturally mirrored (`scaleX(-1)`) self-camera preview.
-- **Layout Switcher**:
-  - **Picture-in-Picture (PIP)**: Keep floating preview while focusing on the remote speaker.
-  - **Swap Main View**: Expand your own camera feed to full size.
-  - **Split View**: 50/50 side-by-side grid display.
-- **Call Controls**: Quick mute microphone, toggle camera on/off, and fullscreen mode.
-
-### ⭕ 3. 24-Hour Stories (Status Updates)
-- **Photo & Gradient Status**: Share media photos or colorful gradient text thoughts.
-- **Interactive Likes & Hearts**: Instant 1-tap heart likes with real-time like counters.
-- **Comments & Reply Drawer**: Post and read threaded comments on any active status.
-- **Smart Pause Timer**: Progress bar automatically pauses while typing comments.
-- **Ephemeral Storage**: Stories automatically expire and clean up after 24 hours.
-
-### 🤖 4. QuickAI Smart Copilot
-- **Chat Summarization**: Summarize lengthy group or 1-on-1 chat threads in seconds.
-- **Tone Rewriter**: Transform informal thoughts into polished Professional or Fun tones.
-- **Smart Reply Suggestions**: 1-tap AI contextual response chips above the input bar.
-
-### 🎨 5. Wallpapers Gallery & Theme Studio
-- **12+ Curated Chat Wallpapers**:
-  - Classic Translucent Glow, WhatsApp Dark Doodle, WhatsApp Light Doodle, Cosmic Space Stars, Cyberpunk Neon Grid, Sakura Blossom, Emerald Honeycomb, Midnight OLED Carbon, Sunset Dunes, Glassmorphic Mesh Aura, Matte Slate, Alpine Forest.
-- **8+ Glassmorphic Themes**:
-  - Purple Velvet, WhatsApp Emerald, WhatsApp Classic Day, Midnight Forest, Celestial Galaxy, Sakura Blossom, Cyberpunk Neon, Midnight Pure Black OLED.
-- **Live Message Bubble Preview**: Instant visual preview before applying changes.
-
-### 🔠 6. System-Wide Dynamic Font Scaling
-- 4 Typography tiers (`Small: 13.5px`, `Medium: 15px`, `Large: 17px`, `Extra Large: 19px`).
-- Automatically syncs to `localStorage` and scales Tailwind font utilities seamlessly.
-
-### 🔒 7. Privacy, Security & Authentication
-- **1-Click Google Sign-In**: Powered by Firebase Google OAuth provider.
-- **Email & Password Authentication**: Secure bcrypt hash + JWT session token.
-- **Phone Number SMS Login**: Real-time phone verification with fast fallback.
-- **Privacy Controls**: Read receipts toggle, Last Seen visibility, and 1-click storage cleanup.
+### 🚀 1. Next-Gen Messaging & Media
+- **💬 Real-Time Instant Messaging**: Low-latency bi-directional messaging powered by Socket.io.
+- **👥 Multi-Member Group Channels**: Create public/private groups, manage member rosters, and chat seamlessly.
+- **📊 Interactive Native Polls**: Compose multi-option polls with live animated percentage bars, voter counts, and optional anonymous voting.
+- **⏰ Scheduled Message Queue**: Schedule messages with presets (*In 30 mins, 2 hours, 12 hours*) or custom datetime picker. Auto-delivered by a background cron dispatcher.
+- **🔥 View-Once Burner Messages**: Self-destructing text and media messages that vaporize after a 5-second countdown upon opening.
+- **🎙️ Voice Note Transcriber & TL;DR**: Auto-transcribe audio voice notes to readable text with a 1-line bullet summary.
+- **🌐 Real-Time Live Translation**: Neural on-the-fly translation in 20+ languages (Spanish, French, German, Hindi, Japanese, Arabic) directly in chat.
+- **🤖 `@SyncAI` In-Chat Group Copilot**: Mention `@SyncAI <question>` in any chat to receive instant answers from the AI assistant.
+- **⚡ Smart One-Click Quick Replies**: Context-aware AI suggestions above the input bar.
+- **🔊 Voice-to-Text Speech Dictation**: Hands-free live microphone typing directly into the message composer.
 
 ---
 
-## 🛠️ Technology Stack
-
-| Layer | Technologies |
-|---|---|
-| **Frontend** | React 19, Vite, Tailwind CSS, Lucide React, React Hot Toast |
-| **Backend** | Node.js, Express.js, Socket.io (WebSocket), Cloudinary |
-| **Database** | MongoDB & Mongoose ODM |
-| **Real-time Comms** | WebRTC (Simple-Peer), Socket.io signaling |
-| **Auth & Cloud** | Firebase Auth (Google OAuth & Phone Auth), JWT, Bcrypt |
+### 📹 2. HD Calling, Screen Sharing & Whiteboard
+- **🎥 WebRTC Video & Voice Calls**: Direct peer-to-peer encrypted voice and video calling.
+- **🪞 Natural Mirror-Flipped Camera**: Mirror view for selfie camera feed.
+- **🔄 Dynamic Layout Switcher**: Toggle between **PIP Overlay**, **Swapped Main View**, and **50/50 Split View**.
+- **💻 Desktop Screen Sharing**: Share screen with 1 click during video calls (`getDisplayMedia`).
+- **🎨 Live Collaborative Whiteboard**: Open a real-time drawing canvas during calls with multi-color pens, eraser, and clear canvas tools.
 
 ---
 
-## 📁 Project Architecture
+### ⭕ 3. 24-Hour Stories & Status with Custom Soundtracks
+- **📸 Text & Photo Stories**: Share rich gradient text cards or photos that auto-expire after 24 hours.
+- **🎵 Music From Anywhere**:
+  - 📁 **Device Audio Upload**: Upload any MP3, WAV, AAC, M4A, or OGG file from your computer or phone.
+  - 🔗 **Audio Stream URL**: Paste any direct audio link.
+  - ✨ **Curated Presets**: Choose from built-in Lo-Fi, Cosmic, and Summer ambient tracks.
+- **❤️ Likes & Live Comments Drawer**: Interactive hearts and real-time reply threads on any story.
+
+---
+
+### 🛡️ 4. Advanced Security & Privacy
+- **🔐 Secret Chat Vault (4-Digit PIN Lock)**: Lock and hide sensitive conversations from the sidebar behind a custom security PIN.
+- **🔑 1-Click Google OAuth & Email Auth**: Instant Firebase authentication with secure JWT tokens.
+- **🗑️ Delete for Everyone**: Remove sent messages for all participants in real time.
+- **🔒 End-to-End Encrypted Data Architecture**: Secure password hashing (`bcryptjs`) and scoped REST API endpoints.
+
+---
+
+### 🎨 5. Personalization & Glassmorphic Aesthetics
+- **🖼️ 12 Curated Chat Wallpapers**:
+  - Default Minimal, Dark Doodle, Light Doodle, Cosmic Stars, Cyber Grid, Sakura Floral, Geometric Honeycomb, Midnight Matrix, Sunset Dunes, Mesh Aura, Matte Slate, and Nature Forest.
+- **✨ 8 Futuristic Glassmorphic Themes**: Midnight Nebula, Cyberpunk Neon, Emerald Glow, Royal Amethyst, Sunset Coral, Deep Slate, Arctic Frost, Rose Quartz.
+- **🔠 Global Typography Scaling**: Dynamically scale font size across the entire application (*Small, Medium, Large, Extra Large*).
+- **🏷️ Contact Nicknames**: Assign custom local aliases to your contacts.
+
+---
+
+## 🏗️ Architecture & Technology Stack
+
+```mermaid
+graph TD
+    Client[SyncWire Client - React 19 + Tailwind CSS]
+    Server[SyncWire Backend - Express.js + Socket.io]
+    DB[(MongoDB Atlas Database)]
+    Cloud[Cloudinary Media CDN]
+    AI[Gemini AI Engine]
+    WebRTC[WebRTC P2P Peer Connection]
+    Firebase[Firebase Authentication]
+
+    Client <-->|WebSocket Real-Time Events| Server
+    Client <-->|REST API Endpoints| Server
+    Client <-->|Google 1-Click Login| Firebase
+    Client <-->|Video / Voice / Screen Share| WebRTC
+    Server <-->|CRUD & Story TTL Index| DB
+    Server <-->|Image / Audio Processing| Cloud
+    Server <-->|Live Translation & Transcripts| AI
+```
+
+---
+
+## 📁 Repository Structure
 
 ```
 QuickChat-Full-Stack/
-├── client/                     # Frontend React + Vite Application
+├── client/                      # React 19 Frontend Application
 │   ├── src/
-│   │   ├── components/         # Chat, Video Call, Modals, Status, Theme components
-│   │   ├── context/            # AuthContext, ChatContext, CallContext
-│   │   ├── pages/              # LoginPage, HomePage, ProfilePage, PhoneLoginPage
-│   │   ├── lib/                # Firebase, WebRTC helpers, Utilities, Sounds
-│   │   ├── App.jsx             # Routes & Global Providers
-│   │   └── main.jsx            # React root mount
-│   └── package.json
-│
-├── server/                     # Backend Node / Express & Socket.io Server
-│   ├── controllers/            # User, Message, Group, Story, AI, OTP controllers
-│   ├── models/                 # User, Message, Group, Story, Otp Schemas
-│   ├── routes/                 # Express API endpoints
-│   ├── lib/                    # MongoDB connection, Socket.io server, Cloudinary
-│   ├── middleware/             # JWT auth protection
-│   └── server.js               # Main HTTP & WebSocket server entry
-│
-├── docker-compose.yml          # Multi-container orchestration
+│   │   ├── components/          # Reusable UI Components & Modals
+│   │   │   ├── AIAssistantModal.jsx
+│   │   │   ├── AudioPlayer.jsx
+│   │   │   ├── CallModal.jsx       # Video/Voice Call + Screen Sharing
+│   │   │   ├── CallWhiteboard.jsx  # Interactive Call Whiteboard Canvas
+│   │   │   ├── ChatContainer.jsx   # Messages, Polls, Translations, Burners
+│   │   │   ├── CreateGroupModal.jsx
+│   │   │   ├── CreatePollModal.jsx # Interactive Poll Composer
+│   │   │   ├── CreateStatusModal.jsx # 24h Story + Custom Music Upload
+│   │   │   ├── EmojiPicker.jsx
+│   │   │   ├── ErrorBoundary.jsx   # Runtime Crash Recovery
+│   │   │   ├── MediaViewer.jsx     # Fullscreen Lightbox
+│   │   │   ├── RightSidebar.jsx    # Profile, Media Gallery & Vault Toggle
+│   │   │   ├── ScheduleMessageModal.jsx # Message Scheduler
+│   │   │   ├── SecretVaultModal.jsx # 4-Digit PIN Lock
+│   │   │   ├── Sidebar.jsx         # Chat List, Stories & Filters
+│   │   │   ├── StatusViewerModal.jsx # Story Viewer + Music Player
+│   │   │   └── ThemeModal.jsx      # Themes & 12 Wallpapers
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx     # Google & JWT Authentication
+│   │   │   ├── CallContext.jsx     # WebRTC Calling & Screen Sharing
+│   │   │   └── ChatContext.jsx     # Real-Time Messages, Polls & Vault
+│   │   ├── lib/
+│   │   │   ├── firebase.js         # Firebase Auth Config
+│   │   │   ├── sounds.js           # Haptic Notification Chimes
+│   │   │   ├── speech.js           # Web Speech Dictation
+│   │   │   └── utils.js            # Formatters & Helpers
+│   │   └── pages/
+│   │       ├── HomePage.jsx        # Main Dashboard
+│   │       ├── LoginPage.jsx       # 2-Column Showcase Landing Page
+│   │       ├── PhoneLoginPage.jsx  # Phone Verification
+│   │       └── ProfilePage.jsx     # Profile & Wallpaper Studio
+├── server/                      # Node.js Express Backend
+│   ├── controllers/
+│   │   ├── aiController.js         # Live Translation, Transcribe & @SyncAI
+│   │   ├── groupController.js      # Group Management
+│   │   ├── messageController.js    # Messages, Polls & Scheduled Queue
+│   │   ├── otpController.js        # Phone Verification
+│   │   ├── storyController.js      # 24h Stories & Cloudinary Music CDN
+│   │   └── userController.js       # Auth, Google Login & Nicknames
+│   ├── models/
+│   │   ├── Group.js
+│   │   ├── Message.js              # Poll, Burner, Scheduled & Translation Schemas
+│   │   ├── Otp.js
+│   │   ├── Story.js                # Music Track Attachment Schema
+│   │   └── User.js
+│   ├── routes/
+│   │   ├── aiRoutes.js
+│   │   ├── groupRoutes.js
+│   │   ├── messageRoutes.js
+│   │   ├── storyRoutes.js
+│   │   └── userRoutes.js
+│   ├── lib/
+│   │   ├── cloudinary.js
+│   │   ├── db.js
+│   │   └── scheduledJob.js         # 10-Second Cron Dispatcher
+│   └── server.js                   # Express + Socket.io Server
 └── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## ⚡ Quick Start Guide
 
 ### Prerequisites
-- **Node.js** (v18.x or v20.x+)
-- **MongoDB** (Local instance or MongoDB Atlas URI)
-- **Cloudinary Account** (for image & media uploads)
+- **Node.js**: v18.0 or higher
+- **MongoDB**: MongoDB Atlas database URI
+- **Cloudinary Account**: Cloud name, API key, API secret
 
 ---
 
-### 1. Clone the Repository
+### 1. Clone Repository
 ```bash
 git clone https://github.com/Goutam16-Withcode/QuickChat-Full-Stack.git
 cd QuickChat-Full-Stack
 ```
 
----
+### 2. Configure Environment Variables
 
-### 2. Configure Backend Environment
-Navigate to `server/` and create a `.env` file:
+Create `server/.env`:
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/syncwire?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret_key_2026
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-GEMINI_API_KEY=your_gemini_api_key
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
-Install dependencies and start backend:
+Create `client/.env`:
+```env
+VITE_BACKEND_URL=http://localhost:5000
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+### 3. Install & Start
+
+#### Run Backend Server:
 ```bash
 cd server
 npm install
 npm run server
 ```
 
----
-
-### 3. Configure Frontend Environment
-Navigate to `client/` and create a `.env` file:
-```env
-VITE_BACKEND_URL=http://localhost:5000
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-app
-VITE_FIREBASE_STORAGE_BUCKET=your-app.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-```
-
-Install dependencies and run frontend:
+#### Run Frontend Client:
 ```bash
-cd ../client
+cd client
 npm install
 npm run dev
 ```
 
-The application will be running at `http://localhost:5173`.
+Visit `http://localhost:5173` in your browser.
 
 ---
 
-## 🐳 Docker Deployment
-
-To launch the full stack with Docker Compose:
-```bash
-docker-compose up --build -d
-```
-- **Client**: `http://localhost:5173`
-- **Server**: `http://localhost:5000`
-
----
-
-## 📄 License
-This project is open-source and available under the [MIT License](LICENSE).
+## 📜 License
+This project is open-source and available under the **MIT License**.

@@ -10,6 +10,8 @@ import AudioPlayer from './AudioPlayer';
 import EmojiPicker from './EmojiPicker';
 import MediaViewer from './MediaViewer';
 import AIAssistantModal from './AIAssistantModal';
+import CreatePollModal from './CreatePollModal';
+import ScheduleMessageModal from './ScheduleMessageModal';
 import { 
     Phone, 
     Video, 
@@ -29,35 +31,55 @@ import {
     Bot,
     Sparkles,
     MicOff,
-    Flame
+    Flame,
+    BarChart2,
+    Clock,
+    Globe,
+    FileText,
+    ShieldCheck,
+    Eye
 } from 'lucide-react';
 
 const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+const TRANSLATE_LANGUAGES = [
+    { code: 'es', label: 'Spanish' },
+    { code: 'fr', label: 'French' },
+    { code: 'de', label: 'German' },
+    { code: 'hi', label: 'Hindi' },
+    { code: 'ja', label: 'Japanese' },
+    { code: 'ar', label: 'Arabic' }
+];
 
 const ChatContainer = () => {
     const { 
         messages, 
         selectedUser, 
         setSelectedUser, 
-        selectedGroup,
-        setSelectedGroup,
+        selectedGroup, 
+        setSelectedGroup, 
         sendMessage, 
-        getMessages,
-        reactToMessage,
-        deleteMessage,
-        typingUsers,
-        sendTyping,
-        sendStopTyping,
-        showContactInfo,
-        setShowContactInfo,
-        activeTheme,
-        appSettings,
-        nicknames,
-        updateNickname,
-        smartReplies
+        getMessages, 
+        reactToMessage, 
+        deleteMessage, 
+        typingUsers, 
+        sendTyping, 
+        sendStopTyping, 
+        showContactInfo, 
+        setShowContactInfo, 
+        activeTheme, 
+        appSettings, 
+        nicknames, 
+        updateNickname, 
+        smartReplies,
+        createPoll,
+        votePoll,
+        scheduleMessage,
+        translateMessage,
+        transcribeAudio,
+        markBurnerOpened
     } = useContext(ChatContext);
 
-    const { authUser, onlineUsers } = useContext(AuthContext);
+    const { authUser, onlineUsers, axios } = useContext(AuthContext);
     const { startCall } = useContext(CallContext);
 
     const scrollEnd = useRef(null);
@@ -73,6 +95,16 @@ const ChatContainer = () => {
     const [hoveredMsgId, setHoveredMsgId] = useState(null);
     const [activeMsgMenuId, setActiveMsgMenuId] = useState(null);
     const [isAIOpen, setIsAIOpen] = useState(false);
+
+    // Next-Gen Modals & Flags
+    const [isCreatePollOpen, setIsCreatePollOpen] = useState(false);
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [isNextBurner, setIsNextBurner] = useState(false);
+    const [translatedMessages, setTranslatedMessages] = useState({});
+    const [selectedTargetLang, setSelectedTargetLang] = useState('es');
+    const [openedBurners, setOpenedBurners] = useState({});
+    const [burnerCountdowns, setBurnerCountdowns] = useState({});
+    const [transcribingIds, setTranscribingIds] = useState({});
 
     // Nickname editing state
     const [isEditingNickname, setIsEditingNickname] = useState(false);
@@ -113,7 +145,7 @@ const ChatContainer = () => {
         }
     };
 
-    // Handle sending a text message
+    // Handle sending a message (including @SyncAI copilot in-chat mentions)
     const handleSendMessage = async (e, customText = null) => {
         if (e) e.preventDefault();
         const textToSend = customText || input.trim();
@@ -121,7 +153,35 @@ const ChatContainer = () => {
 
         setInput('');
         setShowEmoji(false);
-        await sendMessage({ text: textToSend, messageType: 'text' });
+        const wasBurner = isNextBurner;
+        setIsNextBurner(false);
+
+        // Check if message mentions @SyncAI
+        const isAiMention = textToSend.toLowerCase().startsWith('@syncai') || textToSend.toLowerCase().startsWith('@ai');
+
+        await sendMessage({
+            text: textToSend,
+            messageType: 'text',
+            isBurner: wasBurner
+        });
+
+        // Trigger @SyncAI in-chat responder
+        if (isAiMention) {
+            const prompt = textToSend.replace(/@syncai|@ai/gi, '').trim();
+            if (prompt) {
+                try {
+                    const { data } = await axios.post('/api/ai/copilot', { prompt });
+                    if (data.success) {
+                        setTimeout(async () => {
+                            await sendMessage({
+                                text: `🤖 **@SyncAI:** ${data.reply}`,
+                                messageType: 'text'
+                            });
+                        }, 500);
+                    }
+                } catch (err) {}
+            }
+        }
     };
 
     // Handle sending an image
@@ -134,7 +194,8 @@ const ChatContainer = () => {
 
         const reader = new FileReader();
         reader.onloadend = async () => {
-            await sendMessage({ image: reader.result, messageType: 'image' });
+            await sendMessage({ image: reader.result, messageType: 'image', isBurner: isNextBurner });
+            setIsNextBurner(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         };
         reader.readAsDataURL(file);
@@ -223,6 +284,48 @@ const ChatContainer = () => {
         toast('Voice note discarded');
     };
 
+    // Handle Translation
+    const handleTranslate = async (msgId, text) => {
+        if (translatedMessages[msgId]) {
+            // Toggle off
+            setTranslatedMessages((prev) => {
+                const next = { ...prev };
+                delete next[msgId];
+                return next;
+            });
+            return;
+        }
+
+        const translated = await translateMessage(text, selectedTargetLang);
+        setTranslatedMessages((prev) => ({ ...prev, [msgId]: translated }));
+    };
+
+    // Handle Audio Transcription
+    const handleTranscribe = async (msgId) => {
+        setTranscribingIds((prev) => ({ ...prev, [msgId]: true }));
+        await transcribeAudio(msgId);
+        setTranscribingIds((prev) => ({ ...prev, [msgId]: false }));
+    };
+
+    // Handle Burner Message Reveal & 5-Second Countdown
+    const handleRevealBurner = (msgId) => {
+        if (openedBurners[msgId]) return;
+        setOpenedBurners((prev) => ({ ...prev, [msgId]: true }));
+        setBurnerCountdowns((prev) => ({ ...prev, [msgId]: 5 }));
+        markBurnerOpened(msgId);
+
+        const timer = setInterval(() => {
+            setBurnerCountdowns((prev) => {
+                const current = prev[msgId];
+                if (current <= 1) {
+                    clearInterval(timer);
+                    return { ...prev, [msgId]: 0 };
+                }
+                return { ...prev, [msgId]: current - 1 };
+            });
+        }, 1000);
+    };
+
     // Save custom nickname
     const handleSaveNickname = (e) => {
         e.preventDefault();
@@ -264,141 +367,154 @@ const ChatContainer = () => {
         ? messages.filter((m) => m.text && m.text.toLowerCase().includes(searchInChat.toLowerCase()))
         : messages;
 
+    const isChatActive = Boolean(selectedUser || selectedGroup);
     const wallpaperPattern = appSettings?.chatWallpaperPattern || 'default';
 
     return isChatActive ? (
-        <div className={`h-full flex flex-col relative select-none w-full transition-all duration-300 wallpaper-${wallpaperPattern}`}>
+        <div className={`h-full min-h-0 flex flex-col relative w-full overflow-hidden transition-all duration-300 wallpaper-${wallpaperPattern}`}>
             
             {/* Header */}
             <div className={`flex items-center justify-between py-3 mx-4 border-b z-20 transition-colors duration-300 ${activeTheme.chatHeaderClass || 'border-stone-500/60'}`}>
                 <div className="flex items-center gap-3">
-
                     <img 
                         onClick={() => { setSelectedUser(null); setSelectedGroup(null); }} 
                         src={assets.arrow_icon} 
                         alt="Back" 
-                        className="md:hidden max-w-6 cursor-pointer"
+                        className="md:hidden max-w-6 cursor-pointer" 
                     />
 
                     {selectedGroup ? (
-                        // Group Header
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-violet-600/40 border border-violet-400/40 flex items-center justify-center overflow-hidden">
-                                {selectedGroup.groupPic ? (
-                                    <img src={selectedGroup.groupPic} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                    <Users size={18} className="text-violet-300" />
-                                )}
-                            </div>
-                            <div>
-                                <h2 className="text-white font-medium text-base leading-tight">
-                                    {selectedGroup.name}
-                                </h2>
-                                <span className="text-xs text-gray-400">
-                                    {selectedGroup.members?.length || 0} members
-                                </span>
-                            </div>
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow">
+                            <Users size={18} />
                         </div>
                     ) : (
-                        // Direct Chat Header with Nickname
-                        <>
-                            <div 
-                                onClick={() => setShowContactInfo(!showContactInfo)} 
-                                className="relative cursor-pointer shrink-0"
-                            >
-                                <img 
-                                    src={selectedUser.profilePic || assets.avatar_icon} 
-                                    alt={contactDisplayName} 
-                                    className="w-9 h-9 rounded-full object-cover border border-gray-600"
-                                />
-                                {isUserOnline && (
-                                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border border-[#1e1534] rounded-full"></span>
-                                )}
-                            </div>
+                        <div className="relative">
+                            <img 
+                                src={selectedUser.profilePic || assets.avatar_icon} 
+                                alt={contactDisplayName} 
+                                className="w-10 h-10 rounded-full object-cover border border-gray-600" 
+                            />
+                            {isUserOnline && (
+                                <span className="w-3 h-3 bg-green-500 border-2 border-[#1e1534] rounded-full absolute bottom-0 right-0"></span>
+                            )}
+                        </div>
+                    )}
 
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-1.5">
-                                    <h2 
-                                        onClick={() => setShowContactInfo(!showContactInfo)}
-                                        className="text-white font-medium text-base leading-tight cursor-pointer"
-                                    >
-                                        {contactDisplayName}
-                                    </h2>
-                                    {/* Nickname pencil */}
-                                    <button
-                                        onClick={() => setIsEditingNickname(!isEditingNickname)}
-                                        className="text-gray-400 hover:text-violet-300 p-0.5 cursor-pointer transition"
-                                        title="Set Nickname"
-                                    >
-                                        <Edit2 size={12} />
-                                    </button>
-                                </div>
-
+                    <div>
+                        {selectedGroup ? (
+                            <h3 className="text-base font-bold text-white leading-tight">
+                                {selectedGroup.name}
+                            </h3>
+                        ) : (
+                            <div className="flex items-center gap-1.5">
                                 {isEditingNickname ? (
-                                    <form onSubmit={handleSaveNickname} className="flex items-center gap-1 mt-0.5">
+                                    <form onSubmit={handleSaveNickname} className="flex items-center gap-1">
                                         <input
                                             type="text"
                                             value={nicknameInput}
                                             onChange={(e) => setNicknameInput(e.target.value)}
-                                            placeholder="Nickname..."
-                                            className="bg-[#1e1534] border border-violet-400/50 rounded px-1.5 py-0.5 text-[11px] text-white focus:outline-none w-28"
+                                            placeholder="Set nickname..."
+                                            className="bg-white/10 text-xs px-2 py-0.5 rounded border border-gray-500 text-white outline-none"
                                             autoFocus
                                         />
-                                        <button type="submit" className="text-[10px] bg-violet-600 text-white px-1.5 py-0.5 rounded cursor-pointer">
-                                            Save
-                                        </button>
+                                        <button type="submit" className="text-green-400 hover:text-green-300 text-xs font-semibold">Save</button>
+                                        <button type="button" onClick={() => setIsEditingNickname(false)} className="text-gray-400 text-xs">Cancel</button>
                                     </form>
                                 ) : (
-                                    <span className="text-xs">
-                                        {isUserTyping ? (
-                                            <span className="text-green-400 font-medium animate-pulse">typing...</span>
-                                        ) : isUserOnline ? (
-                                            <span className="text-green-400">online</span>
-                                        ) : (
-                                            <span className="text-gray-400">{formatLastSeen(selectedUser?.lastSeen)}</span>
-                                        )}
-                                    </span>
+                                    <div className="flex items-center gap-1.5 group">
+                                        <h3 className="text-base font-bold text-white leading-tight">
+                                            {contactDisplayName}
+                                        </h3>
+                                        <button
+                                            onClick={() => setIsEditingNickname(true)}
+                                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white transition p-0.5"
+                                            title="Edit custom nickname"
+                                        >
+                                            <Edit2 size={12} />
+                                        </button>
+                                    </div>
                                 )}
                             </div>
-                        </>
-                    )}
+                        )}
+
+                        <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                            {selectedGroup ? (
+                                `${selectedGroup.members?.length || 0} members`
+                            ) : isUserTyping ? (
+                                <span className="text-cyan-300 font-semibold animate-pulse">typing...</span>
+                            ) : isUserOnline ? (
+                                <span className="text-green-400 font-medium">Online</span>
+                            ) : (
+                                formatLastSeen(selectedUser.lastSeen)
+                            )}
+                        </span>
+                    </div>
                 </div>
 
-                {/* Header Action Buttons */}
-                <div className="flex items-center gap-3 text-gray-300">
-                    {selectedUser && (
+                {/* Right Action Icons in Header */}
+                <div className="flex items-center gap-2">
+                    {/* Translate Language Selector */}
+                    <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full border border-white/10 text-xs text-violet-300">
+                        <Globe size={12} />
+                        <select
+                            value={selectedTargetLang}
+                            onChange={(e) => setSelectedTargetLang(e.target.value)}
+                            className="bg-transparent border-none outline-none text-[11px] text-white cursor-pointer"
+                        >
+                            {TRANSLATE_LANGUAGES.map((lang) => (
+                                <option key={lang.code} value={lang.code} className="bg-[#1e1534] text-white">
+                                    {lang.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
+                    {/* AI Copilot Button */}
+                    <button
+                        onClick={() => setIsAIOpen(true)}
+                        className="p-2 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 hover:border-purple-400 text-cyan-300 transition cursor-pointer"
+                        title="Open QuickAI Copilot"
+                    >
+                        <Sparkles size={16} />
+                    </button>
+
+                    {/* Voice & Video Call Buttons */}
+                    {selectedUser && (
                         <>
-                            <button 
+                            <button
                                 onClick={() => startCall(selectedUser, false)}
-                                title="Voice Call" 
-                                className="p-1.5 hover:text-white transition cursor-pointer"
+                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                                title="Voice Call"
                             >
-                                <Phone size={18} />
+                                <Phone size={16} />
                             </button>
-                            <button 
+                            <button
                                 onClick={() => startCall(selectedUser, true)}
-                                title="Video Call" 
-                                className="p-1.5 hover:text-white transition cursor-pointer"
+                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                                title="HD Video Call"
                             >
-                                <Video size={19} />
+                                <Video size={16} />
                             </button>
                         </>
                     )}
+
+                    {/* Search inside conversation */}
                     <button 
                         onClick={() => setShowChatSearch(!showChatSearch)}
-                        title="Search in chat" 
-                        className={`p-1.5 transition cursor-pointer ${showChatSearch ? 'text-violet-400' : 'hover:text-white'}`}
+                        className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                        title="Search in chat"
                     >
-                        <Search size={18} />
+                        <Search size={16} />
                     </button>
+
+                    {/* Contact details sidebar toggle */}
                     {selectedUser && (
-                        <button 
+                        <button
                             onClick={() => setShowContactInfo(!showContactInfo)}
-                            title="Contact info" 
-                            className={`p-1.5 transition cursor-pointer ${showContactInfo ? 'text-violet-400' : 'hover:text-white'}`}
+                            className={`p-2 rounded-full transition cursor-pointer ${showContactInfo ? 'bg-violet-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+                            title="Contact Info"
                         >
-                            <Info size={18} />
+                            <Info size={16} />
                         </button>
                     )}
                 </div>
@@ -406,7 +522,7 @@ const ChatContainer = () => {
 
             {/* In-Chat Search Bar */}
             {showChatSearch && (
-                <div className="bg-[#282142]/80 px-4 py-2 flex items-center gap-3 border-b border-gray-700/50 animate-in slide-in-from-top-2 duration-150">
+                <div className="mx-4 my-2 px-3 py-1.5 bg-[#282142] border border-gray-600 rounded-xl flex items-center gap-2 animate-in fade-in duration-150">
                     <Search size={14} className="text-gray-400" />
                     <input 
                         type="text" 
@@ -425,7 +541,7 @@ const ChatContainer = () => {
             )}
 
             {/* Chat Messages Stream */}
-            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
+            <div className="flex-1 min-h-0 chat-scroll-area px-4 md:px-6 py-4 space-y-4">
                 
                 {displayedMessages.map((msg, idx) => {
                     const senderId = msg.senderId?._id || msg.senderId;
@@ -438,6 +554,11 @@ const ChatContainer = () => {
                         acc[curr.emoji] = (acc[curr.emoji] || 0) + 1;
                         return acc;
                     }, {});
+
+                    const isPoll = msg.messageType === 'poll' && msg.poll;
+                    const isBurner = msg.isBurner;
+                    const isBurnerRevealed = openedBurners[msg._id];
+                    const countdown = burnerCountdowns[msg._id];
 
                     return (
                         <div 
@@ -454,7 +575,7 @@ const ChatContainer = () => {
                                 />
                             )}
 
-                            {/* Hover Reaction Bar */}
+                            {/* Hover Reaction & Tools Bar */}
                             {isHovered && !msg.isDeleted && (
                                 <div className={`absolute -top-7 ${isSent ? 'right-2' : 'left-9'} z-30 bg-[#282142] border border-gray-600 rounded-full px-2 py-1 flex items-center gap-1 shadow-2xl animate-in fade-in zoom-in-95 duration-100`}>
                                     {REACTION_EMOJIS.map((emoji) => (
@@ -467,6 +588,18 @@ const ChatContainer = () => {
                                             {emoji}
                                         </button>
                                     ))}
+
+                                    {/* Translate Action Button */}
+                                    {msg.text && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleTranslate(msg._id, msg.text)}
+                                            className="p-1 text-gray-400 hover:text-cyan-300 transition cursor-pointer"
+                                            title="Translate message"
+                                        >
+                                            <Globe size={13} />
+                                        </button>
+                                    )}
 
                                     {/* 3-Dot Dropdown for Delete */}
                                     {isSent && (
@@ -485,8 +618,8 @@ const ChatContainer = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            deleteMessage(msg._id);
-                                                            setActiveMsgMenuId(null);
+                                                             deleteMessage(msg._id);
+                                                             setActiveMsgMenuId(null);
                                                         }}
                                                         className="w-full px-3 py-1.5 text-left text-red-400 hover:bg-red-500/20 flex items-center gap-2 cursor-pointer"
                                                     >
@@ -501,7 +634,7 @@ const ChatContainer = () => {
                             )}
 
                             <div 
-                                className={`relative max-w-[80%] sm:max-w-[70%] md:max-w-[60%] rounded-xl p-3 shadow-lg select-text ${
+                                className={`relative max-w-[85%] sm:max-w-[75%] md:max-w-[65%] rounded-xl p-3 shadow-lg select-text ${
                                     isSent 
                                         ? `${activeTheme.bubbleSent} rounded-br-none` 
                                         : `${activeTheme.bubbleReceived} rounded-bl-none`
@@ -520,8 +653,93 @@ const ChatContainer = () => {
                                         <Ban size={13} className="text-gray-500" />
                                         <span>This message was deleted</span>
                                     </div>
+                                ) : isPoll ? (
+                                    /* ================= INTERACTIVE POLL CARD ================= */
+                                    <div className="space-y-3 min-w-[240px] sm:min-w-[280px]">
+                                        <div className="flex items-center gap-1.5 border-b border-white/10 pb-1.5">
+                                            <BarChart2 size={16} className="text-violet-300" />
+                                            <h4 className="text-sm font-bold text-white leading-tight">
+                                                {msg.poll.question}
+                                            </h4>
+                                        </div>
+
+                                        {/* Poll Options */}
+                                        <div className="space-y-2">
+                                            {(() => {
+                                                const totalVotes = msg.poll.options.reduce((acc, opt) => acc + (opt.votes?.length || 0), 0);
+                                                return msg.poll.options.map((opt) => {
+                                                    const voteCount = opt.votes?.length || 0;
+                                                    const pct = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                                                    const hasVoted = opt.votes?.some((id) => (id === authUser?._id || id?._id === authUser?._id));
+
+                                                    return (
+                                                        <div
+                                                            key={opt.id}
+                                                            onClick={() => votePoll(msg._id, opt.id)}
+                                                            className={`relative rounded-xl p-2.5 border transition cursor-pointer overflow-hidden ${
+                                                                hasVoted
+                                                                    ? 'border-violet-400 bg-violet-600/30'
+                                                                    : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                                            }`}
+                                                        >
+                                                            {/* Percentage Fill Bar */}
+                                                            <div
+                                                                className="absolute inset-0 bg-violet-500/25 transition-all duration-500 pointer-events-none"
+                                                                style={{ width: `${pct}%` }}
+                                                            />
+
+                                                            <div className="relative z-10 flex items-center justify-between text-xs">
+                                                                <div className="flex items-center gap-2 font-medium text-white">
+                                                                    <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                                                                        hasVoted ? 'border-violet-400 bg-violet-500' : 'border-white/40'
+                                                                    }`}>
+                                                                        {hasVoted && <Check size={10} className="text-white" />}
+                                                                    </div>
+                                                                    <span>{opt.text}</span>
+                                                                </div>
+                                                                <span className="font-bold text-violet-200">{pct}% ({voteCount})</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                });
+                                            })()}
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[10px] text-gray-300 pt-1">
+                                            <span>
+                                                {msg.poll.options.reduce((acc, opt) => acc + (opt.votes?.length || 0), 0)} total votes
+                                            </span>
+                                            {msg.poll.isAnonymous && (
+                                                <span className="flex items-center gap-1 text-emerald-400">
+                                                    <ShieldCheck size={11} /> Anonymous
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : isBurner && !isSent && !isBurnerRevealed ? (
+                                    /* ================= UNOPENED BURNER / VIEW-ONCE CARD ================= */
+                                    <div
+                                        onClick={() => handleRevealBurner(msg._id)}
+                                        className="p-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-red-500/20 border border-amber-500/40 text-center cursor-pointer hover:scale-102 transition flex flex-col items-center gap-2"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-amber-500/30 text-amber-300 flex items-center justify-center animate-bounce">
+                                            <Flame size={20} />
+                                        </div>
+                                        <p className="text-xs font-bold text-white">Self-Destructing Burner Note</p>
+                                        <p className="text-[10px] text-amber-300">Tap to reveal (Vaporizes in 5 seconds)</p>
+                                    </div>
                                 ) : (
                                     <>
+                                        {/* Burner Countdown Warning Banner */}
+                                        {isBurner && countdown !== undefined && (
+                                            <div className="mb-2 p-1.5 rounded-lg bg-red-500/20 border border-red-500/40 flex items-center justify-between text-[11px] text-red-300">
+                                                <span className="flex items-center gap-1 font-semibold">
+                                                    <Flame size={12} className="animate-ping" /> Self-destructing:
+                                                </span>
+                                                <span className="font-bold font-mono">{countdown}s</span>
+                                            </div>
+                                        )}
+
                                         {/* Image message */}
                                         {msg.image && (
                                             <div 
@@ -531,14 +749,35 @@ const ChatContainer = () => {
                                                 <img 
                                                     src={msg.image} 
                                                     alt="Attachment" 
-                                                    className="max-h-64 w-full object-cover rounded-lg border border-gray-700"
+                                                    className="max-h-64 w-full object-cover rounded-lg border border-gray-700" 
                                                 />
                                             </div>
                                         )}
 
-                                        {/* Audio voice note message */}
+                                        {/* Audio voice note message with Transcribe Option */}
                                         {msg.audio && (
-                                            <AudioPlayer src={msg.audio} isSent={isSent} />
+                                            <div className="space-y-1.5">
+                                                <AudioPlayer src={msg.audio} isSent={isSent} />
+                                                {!msg.transcription && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTranscribe(msg._id)}
+                                                        disabled={transcribingIds[msg._id]}
+                                                        className="text-[10px] text-cyan-300 hover:text-cyan-200 bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-md border border-white/10 flex items-center gap-1 cursor-pointer transition"
+                                                    >
+                                                        <FileText size={10} />
+                                                        {transcribingIds[msg._id] ? "Transcribing..." : "Transcribe & TL;DR"}
+                                                    </button>
+                                                )}
+                                                {msg.transcription && (
+                                                    <div className="p-2 rounded-lg bg-black/30 border border-white/10 text-xs space-y-1 mt-1">
+                                                        <p className="text-gray-200 italic">"{msg.transcription}"</p>
+                                                        {msg.summary && (
+                                                            <p className="text-[10px] text-cyan-300 font-semibold">{msg.summary}</p>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
 
                                         {/* Text message */}
@@ -546,6 +785,17 @@ const ChatContainer = () => {
                                             <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
                                                 {msg.text}
                                             </p>
+                                        )}
+
+                                        {/* Live Translation Card Overlay */}
+                                        {translatedMessages[msg._id] && (
+                                            <div className="mt-2 p-2 rounded-lg bg-violet-950/70 border border-violet-500/40 text-xs text-violet-200 space-y-0.5 animate-in fade-in duration-150">
+                                                <div className="flex items-center justify-between text-[10px] text-violet-400 font-semibold border-b border-violet-500/20 pb-0.5">
+                                                    <span className="flex items-center gap-1"><Globe size={10} /> Translated</span>
+                                                    <button onClick={() => handleTranslate(msg._id, msg.text)} className="hover:text-white">✕</button>
+                                                </div>
+                                                <p className="pt-0.5 font-medium">{translatedMessages[msg._id]}</p>
+                                            </div>
                                         )}
                                     </>
                                 )}
@@ -608,7 +858,7 @@ const ChatContainer = () => {
                 </div>
             )}
 
-            {/* Bottom Bar: Input, Emoji, Voice Dictation, Attachments & Voice Recorder */}
+            {/* Bottom Bar: Input, Emoji, Poll, Scheduler, Burner, Attachments & Voice Recorder */}
             <div className="p-3 relative z-30">
                 
                 {/* Emoji Drawer Toggle */}
@@ -648,9 +898,46 @@ const ChatContainer = () => {
                         </div>
                     </div>
                 ) : (
-                    // Normal Text & Attachment Bar with Voice Dictation
-                    <div className="flex items-center gap-3">
-                        <div className={`flex-1 flex items-center px-3 rounded-full border transition-colors duration-300 ${activeTheme.inputBarBgClass || 'bg-gray-100/12 border-gray-600/30'}`}>
+                    // Normal Text & Next-Gen Action Input Bar
+                    <div className="flex items-center gap-2">
+                        {/* Quick Feature Action Buttons */}
+                        <div className="flex items-center gap-1">
+                            {/* Create Poll Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsCreatePollOpen(true)}
+                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-violet-300 hover:text-white transition cursor-pointer"
+                                title="Create Poll"
+                            >
+                                <BarChart2 size={17} />
+                            </button>
+
+                            {/* Schedule Message Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsScheduleModalOpen(true)}
+                                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-cyan-300 hover:text-white transition cursor-pointer"
+                                title="Schedule Message"
+                            >
+                                <Clock size={17} />
+                            </button>
+
+                            {/* View-Once Burner Toggle */}
+                            <button
+                                type="button"
+                                onClick={() => setIsNextBurner(!isNextBurner)}
+                                className={`p-2 rounded-full transition cursor-pointer ${
+                                    isNextBurner ? 'bg-amber-500 text-white shadow-lg ring-2 ring-amber-400' : 'bg-white/10 hover:bg-white/20 text-amber-400'
+                                }`}
+                                title={isNextBurner ? "Burner Note Active (View Once)" : "Send as View-Once Burner Note"}
+                            >
+                                <Flame size={17} />
+                            </button>
+                        </div>
+
+                        <div className={`flex-1 flex items-center px-3 rounded-full border transition-colors duration-300 ${
+                            isNextBurner ? 'border-amber-400/80 bg-amber-500/10' : (activeTheme.inputBarBgClass || 'bg-gray-100/12 border-gray-600/30')
+                        }`}>
                             <button 
                                 type="button"
                                 onClick={() => setShowEmoji(!showEmoji)} 
@@ -659,7 +946,6 @@ const ChatContainer = () => {
                             >
                                 <Smile size={19} />
                             </button>
-
 
                             <input 
                                 value={input}
@@ -671,7 +957,13 @@ const ChatContainer = () => {
                                     }
                                 }}
                                 type="text" 
-                                placeholder={isDictating ? "Listening... speak now" : (selectedGroup ? `Message #${selectedGroup.name}` : "Send a message")} 
+                                placeholder={
+                                    isNextBurner 
+                                        ? "🔥 Type self-destructing view-once message..."
+                                        : isDictating 
+                                            ? "Listening... speak now" 
+                                            : (selectedGroup ? `Message #${selectedGroup.name} (type @SyncAI for assistant)` : "Type a message (or @SyncAI to ask AI)...")
+                                } 
                                 className={`flex-1 text-sm p-2.5 border-none rounded-lg outline-none text-white placeholder-gray-400 ${isDictating ? 'placeholder-red-400 animate-pulse' : ''}`}
                             />
 
@@ -727,6 +1019,25 @@ const ChatContainer = () => {
                 )}
             </div>
 
+            {/* Next-Gen Modals */}
+            <CreatePollModal
+                isOpen={isCreatePollOpen}
+                onClose={() => setIsCreatePollOpen(false)}
+                onCreatePoll={createPoll}
+            />
+
+            <ScheduleMessageModal
+                isOpen={isScheduleModalOpen}
+                onClose={() => setIsScheduleModalOpen(false)}
+                onSchedule={scheduleMessage}
+                defaultText={input}
+            />
+
+            <AIAssistantModal
+                isOpen={isAIOpen}
+                onClose={() => setIsAIOpen(false)}
+            />
+
             {/* Fullscreen Media Viewer Lightbox */}
             {viewingMedia && (
                 <MediaViewer 
@@ -746,7 +1057,3 @@ const ChatContainer = () => {
 };
 
 export default ChatContainer;
-
-
-
-

@@ -5,17 +5,20 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext.jsx';
 import { ChatProvider } from '../context/ChatContext.jsx';
 import { CallProvider } from '../context/CallContext.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <AuthProvider>
-      <ChatProvider>
-        <CallProvider>
-          <App />
-        </CallProvider>
-      </ChatProvider>
-    </AuthProvider>
-  </BrowserRouter>,
+  <ErrorBoundary>
+    <BrowserRouter>
+      <AuthProvider>
+        <ChatProvider>
+          <CallProvider>
+            <App />
+          </CallProvider>
+        </ChatProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </ErrorBoundary>,
 );
 
 

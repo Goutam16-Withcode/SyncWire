@@ -259,4 +259,227 @@ export const deleteMessage = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+
+// Create a native interactive Poll
+export const createPoll = async (req, res) => {
+    try {
+        const { question, options, isAnonymous = false, isGroup = false } = req.body;
+        const targetId = req.params.id;
+        const senderId = req.user._id;
+
+        if (!question || !options || options.length < 2) {
+            return res.json({ success: false, message: "Poll requires a question and at least 2 options" });
+        }
+
+        const pollOptions = options.map((opt, idx) => ({
+            id: `opt_${Date.now()}_${idx}`,
+            text: typeof opt === 'string' ? opt : opt.text,
+            votes: []
+        }));
+
+        const messageData = {
+            senderId,
+            text: question,
+            messageType: 'poll',
+            poll: {
+                question,
+                options: pollOptions,
+                isAnonymous
+            }
+        };
+
+        if (isGroup) {
+            messageData.groupId = targetId;
+        } else {
+            messageData.receiverId = targetId;
+        }
+
+        const newMessage = await Message.create(messageData);
+        const populatedMessage = await Message.findById(newMessage._id)
+            .populate("senderId", "fullName profilePic");
+
+        if (isGroup) {
+            io.to(`group_${targetId}`).emit("newGroupMessage", populatedMessage);
+        } else {
+            const receiverSocketId = userSocketMap[targetId];
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("newMessage", populatedMessage);
+            }
+        }
+
+        res.json({ success: true, newMessage: populatedMessage });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Vote on a Poll option (toggle vote)
+export const votePoll = async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const { optionId } = req.body;
+        const userId = req.user._id;
+
+        const message = await Message.findById(messageId);
+        if (!message || message.messageType !== 'poll') {
+            return res.json({ success: false, message: "Poll not found" });
+        }
+
+        let userAlreadyVotedThisOption = false;
+
+        // Check and toggle vote
+        message.poll.options.forEach((opt) => {
+            const voteIdx = opt.votes.findIndex((id) => id.toString() === userId.toString());
+            if (opt.id === optionId) {
+                if (voteIdx > -1) {
+                    opt.votes.splice(voteIdx, 1);
+                    userAlreadyVotedThisOption = false;
+                } else {
+                    opt.votes.push(userId);
+                    userAlreadyVotedThisOption = true;
+                }
+            } else {
+                // If single-choice, remove from other options
+                if (voteIdx > -1) {
+                    opt.votes.splice(voteIdx, 1);
+                }
+            }
+        });
+
+        await message.save();
+
+        const payload = {
+            messageId,
+            poll: message.poll,
+            voterId: userId
+        };
+
+        if (message.groupId) {
+            io.to(`group_${message.groupId}`).emit("pollUpdated", payload);
+        } else {
+            const partnerId = message.senderId.toString() === userId.toString()
+                ? message.receiverId
+                : message.senderId;
+            const partnerSocketId = userSocketMap[partnerId];
+            if (partnerSocketId) {
+                io.to(partnerSocketId).emit("pollUpdated", payload);
+            }
+        }
+
+        res.json({ success: true, poll: message.poll });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Schedule a Message for delayed delivery
+export const scheduleMessage = async (req, res) => {
+    try {
+        const { text, scheduledFor, isGroup = false } = req.body;
+        const targetId = req.params.id;
+        const senderId = req.user._id;
+
+        if (!text || !scheduledFor) {
+            return res.json({ success: false, message: "Text and scheduled date/time are required" });
+        }
+
+        const messageData = {
+            senderId,
+            text,
+            messageType: 'text',
+            isScheduled: true,
+            isDispatched: false,
+            scheduledFor: new Date(scheduledFor)
+        };
+
+        if (isGroup) {
+            messageData.groupId = targetId;
+        } else {
+            messageData.receiverId = targetId;
+        }
+
+        const scheduledMsg = await Message.create(messageData);
+        res.json({ success: true, scheduledMessage: scheduledMsg, message: "Message scheduled successfully" });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Get pending scheduled messages for current user
+export const getScheduledMessages = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const scheduledList = await Message.find({
+            senderId: userId,
+            isScheduled: true,
+            isDispatched: false
+        }).sort({ scheduledFor: 1 });
+
+        res.json({ success: true, scheduledMessages: scheduledList });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Cancel a scheduled message
+export const cancelScheduledMessage = async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const userId = req.user._id;
+
+        await Message.findOneAndDelete({ _id: messageId, senderId: userId, isScheduled: true, isDispatched: false });
+        res.json({ success: true, message: "Scheduled message cancelled" });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Mark Burner (View-Once) message opened & trigger 5-second vaporization
+export const markBurnerOpened = async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const message = await Message.findById(messageId);
+
+        if (!message || !message.isBurner) {
+            return res.json({ success: false, message: "Burner message not found" });
+        }
+
+        message.burnerOpenedAt = new Date();
+        await message.save();
+
+        // Schedule auto-deletion in 5 seconds
+        setTimeout(async () => {
+            try {
+                const targetMsg = await Message.findById(messageId);
+                if (targetMsg) {
+                    targetMsg.isDeleted = true;
+                    targetMsg.text = "🔥 Burner message vaporized";
+                    targetMsg.image = null;
+                    targetMsg.audio = null;
+                    await targetMsg.save();
+
+                    const payload = { messageId, isDeleted: true };
+                    if (targetMsg.groupId) {
+                        io.to(`group_${targetMsg.groupId}`).emit("messageDeleted", payload);
+                    } else {
+                        const recSocket = userSocketMap[targetMsg.receiverId];
+                        const sendSocket = userSocketMap[targetMsg.senderId];
+                        if (recSocket) io.to(recSocket).emit("messageDeleted", payload);
+                        if (sendSocket) io.to(sendSocket).emit("messageDeleted", payload);
+                    }
+                }
+            } catch (e) {}
+        }, 5000);
+
+        res.json({ success: true, messageId, expiresInSeconds: 5 });
+    } catch (error) {
+        console.log(error.message);
+        res.json({ success: false, message: error.message });
+    }
+};
 

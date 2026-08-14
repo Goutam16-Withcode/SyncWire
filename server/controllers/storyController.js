@@ -5,7 +5,7 @@ import cloudinary from "../lib/cloudinary.js";
 // Create / Post a new Story
 export const createStory = async (req, res) => {
     try {
-        const { media, text, caption, bgGradient } = req.body;
+        const { media, text, caption, bgGradient, musicTrack } = req.body;
         const userId = req.user._id;
 
         let mediaUrl = "";
@@ -14,12 +14,28 @@ export const createStory = async (req, res) => {
             mediaUrl = uploadRes.secure_url;
         }
 
+        let finalMusicTrack = musicTrack;
+        if (musicTrack && musicTrack.audioUrl && musicTrack.audioUrl.startsWith("data:")) {
+            try {
+                const audioUpload = await cloudinary.uploader.upload(musicTrack.audioUrl, {
+                    resource_type: "video"
+                });
+                finalMusicTrack = {
+                    ...musicTrack,
+                    audioUrl: audioUpload.secure_url
+                };
+            } catch (e) {
+                finalMusicTrack = musicTrack;
+            }
+        }
+
         const newStory = await Story.create({
             userId,
             media: mediaUrl,
             text: text || "",
             caption: caption || "",
             bgGradient: bgGradient || "from-purple-600 to-indigo-700",
+            musicTrack: finalMusicTrack || null,
         });
 
         const populatedStory = await Story.findById(newStory._id)
