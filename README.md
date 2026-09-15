@@ -3,7 +3,7 @@
 # ⚡ SyncWire
 ### *Next-Generation Real-Time Messaging, HD Video Calling & AI Collaboration Platform*
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-sync--wire.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://sync-wire.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-sync--wire--put3.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://sync-wire-put3.vercel.app/)
 [![API Backend](https://img.shields.io/badge/Backend%20API-syncwire.onrender.com-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://syncwire.onrender.com/api/status)
 [![React 19](https://img.shields.io/badge/React-19.0-61dafb?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -18,7 +18,7 @@
 
 | Service | Environment | Live URL | Status |
 | :--- | :--- | :--- | :--- |
-| **Frontend Web App** | Vercel Edge CDN | [**https://sync-wire.vercel.app**](https://sync-wire.vercel.app/) | ![Vercel](https://img.shields.io/badge/Online-brightgreen?style=flat-square) |
+| **Frontend Web App** | Vercel Edge CDN | [**https://sync-wire-put3.vercel.app**](https://sync-wire-put3.vercel.app/) | ![Vercel](https://img.shields.io/badge/Online-brightgreen?style=flat-square) |
 | **Backend API & WebSockets** | Render Cloud | [**https://syncwire.onrender.com**](https://syncwire.onrender.com/api/status) | ![Render](https://img.shields.io/badge/Online-brightgreen?style=flat-square) |
 | **System Health & Metrics** | Render Cloud | [**https://syncwire.onrender.com/api/health**](https://syncwire.onrender.com/api/health) | ![Health](https://img.shields.io/badge/Healthy-brightgreen?style=flat-square) |
 
