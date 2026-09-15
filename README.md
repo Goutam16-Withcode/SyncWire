@@ -3,13 +3,24 @@
 # ⚡ SyncWire
 ### *Next-Generation Real-Time Messaging, HD Video Calling & AI Collaboration Platform*
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-sync--wire.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://sync-wire.vercel.app/)
+[![API Backend](https://img.shields.io/badge/Backend%20API-syncwire.onrender.com-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://syncwire.onrender.com/api/status)
 [![React 19](https://img.shields.io/badge/React-19.0-61dafb?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-Real--Time-010101?style=for-the-badge&logo=socket.io&logoColor=white)](https://socket.io/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![WebRTC](https://img.shields.io/badge/WebRTC-Peer--to--Peer-333333?style=for-the-badge&logo=webrtc&logoColor=white)](https://webrtc.org/)
 [![Cloudinary](https://img.shields.io/badge/Cloudinary-CDN-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
-[![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+
+---
+
+### 🌐 Live Production Links
+
+| Service | Environment | Live URL | Status |
+| :--- | :--- | :--- | :--- |
+| **Frontend Web App** | Vercel Edge CDN | [**https://sync-wire.vercel.app**](https://sync-wire.vercel.app/) | ![Vercel](https://img.shields.io/badge/Online-brightgreen?style=flat-square) |
+| **Backend API & WebSockets** | Render Cloud | [**https://syncwire.onrender.com**](https://syncwire.onrender.com/api/status) | ![Render](https://img.shields.io/badge/Online-brightgreen?style=flat-square) |
+| **System Health & Metrics** | Render Cloud | [**https://syncwire.onrender.com/api/health**](https://syncwire.onrender.com/api/health) | ![Health](https://img.shields.io/badge/Healthy-brightgreen?style=flat-square) |
 
 ---
 
@@ -175,8 +186,8 @@ QuickChat-Full-Stack/
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/Goutam16-Withcode/QuickChat-Full-Stack.git
-cd QuickChat-Full-Stack
+git clone https://github.com/Goutam16-Withcode/SyncWire.git
+cd SyncWire
 ```
 
 ### 2. Configure Environment Variables

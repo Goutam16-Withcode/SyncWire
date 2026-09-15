@@ -2,21 +2,34 @@ import { initializeApp, getApps } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 // Firebase configuration from environment variables
-const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
-    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
-};
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const auth = getAuth(app);
+let app = null;
+let auth = null;
+
+if (apiKey && apiKey.trim() !== "") {
+    try {
+        const firebaseConfig = {
+            apiKey: apiKey,
+            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+            appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+            measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
+        };
+        app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+        auth = getAuth(app);
+    } catch (err) {
+        console.warn("Firebase initialization skipped or failed:", err);
+    }
+}
+
+export { auth };
 
 // Initialize Recaptcha Verifier
 export const setupRecaptcha = (buttonId = 'recaptcha-container') => {
+    if (!auth) return null;
     try {
         if (!window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, buttonId, {
@@ -38,6 +51,9 @@ export const setupRecaptcha = (buttonId = 'recaptcha-container') => {
 
 // Send real SMS OTP with Firebase
 export const sendFirebaseOtp = async (phoneNumber) => {
+    if (!auth) {
+        return { success: false, message: "Phone login requires Firebase configuration. Please use Email & Password." };
+    }
     try {
         const appVerifier = setupRecaptcha('recaptcha-container');
         const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
@@ -57,6 +73,9 @@ export const sendFirebaseOtp = async (phoneNumber) => {
 
 // Google OAuth Sign-in
 export const signInWithGoogle = async () => {
+    if (!auth) {
+        return { success: false, message: "Google sign-in requires Firebase configuration. Please use Email & Password." };
+    }
     try {
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
@@ -76,3 +95,4 @@ export const signInWithGoogle = async () => {
         return { success: false, message: error.message };
     }
 };
+
