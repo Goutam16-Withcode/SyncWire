@@ -1,8 +1,8 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
-// Firebase configuration from environment variables
-const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+// Firebase configuration from environment variables with defaults
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCg9nB8YeTkQHdgz9WvbpnuYJkaW9VqqJQ";
 
 let app = null;
 let auth = null;
@@ -11,12 +11,12 @@ if (apiKey && apiKey.trim() !== "") {
     try {
         const firebaseConfig = {
             apiKey: apiKey,
-            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
-            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
-            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
-            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
-            appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
-            measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ""
+            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "syncwire-38dba.firebaseapp.com",
+            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "syncwire-38dba",
+            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "syncwire-38dba.firebasestorage.app",
+            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "373548206675",
+            appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:373548206675:web:ad4cb0f5f50637919254a6",
+            measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-MWNV7J62Q4"
         };
         app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
         auth = getAuth(app);
